@@ -39,6 +39,11 @@ def viewData():
     conn.execute("SELECT * FROM SensorData;")
     return render_template('view_data.html')
 
+@app.route('/manualAddDataForm', methods = ['POST', 'GET'])
+def manualAddDataForm():
+    return render_template('manualDataForm.html')
+
+
 def startTest():
     test_no += 1
     #Get movement and displacement values from microcomputer and black box
