@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect
 import sqlite3 as sql
+import datetime
 
 app = Flask(__name__)
 
@@ -21,27 +22,54 @@ x_displacement = 0
 y_displacement = 0
 z_displacement = 0
 
-isBroken = False;
-isTT = False;
-isVTT = False;
+isBroken = False
+isTT = False
+isVTT = False
 
 test_no = 0
+
+def insertTestData(fxpos, fxneg, fypos, fyneg, axpos, axneg):
+    insertCommand = """INSERT INTO SensorData(timestamp, fx_pos, fx_neg, fy_pos, fy_neg, ax_pos, ax_neg) VALUES
+    (""" + str(datetime.datetime.now()) + ", " + str(fxpos) + ", " + str(fxneg) + ", " + str(fypos) + """, 
+    """ + str(fyneg) + ", " + str(axpos) + ", " + str(axneg) + ")"
+    conn.execute(insertCommand)
 
 #define upper and lower limits of sensitivity to determine pass/fail
 
 #flask page control
+#pretty much the home page
 @app.route('/')
 def index():
     return render_template('index.html')
 
+#View the database
 @app.route('/viewDatabase')
 def viewData():
     conn.execute("SELECT * FROM SensorData;")
     return render_template('view_data.html')
 
+#display the HTML form for adding the data
 @app.route('/manualAddDataForm', methods = ['POST', 'GET'])
 def manualAddDataForm():
     return render_template('manualDataForm.html')
+#function for actually adding the data from the HTML form to the database
+@app.route('/manualAddData', methods = ['POST', 'GET'])
+def manualAddData():
+    if request.method == 'POST':
+        try:
+            #get the information from the HTML form
+            fxpos = request.form['fx_pos']
+            fxneg = request.form['fx_neg']
+            fypos = request.form['fy_pos']
+            fyneg = request.form['fy_neg']
+            axpos = request.form['ax_pos']
+            axneg = request.form['ax_neg']
+
+            #add the values to the database
+            
+
+            
+            
 
 
 def startTest():
