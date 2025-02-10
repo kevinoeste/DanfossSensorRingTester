@@ -67,6 +67,7 @@ def manualAddData():
 
             #add the values to the database
             insertTestData(fxpos, fxneg, fypos, fyneg, axpos, axneg)
+            msg = "Test data was successfully stored."
         except:
             msg = "Error: Test data could not be added to the database."
         finally:
