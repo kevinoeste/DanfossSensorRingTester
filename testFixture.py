@@ -66,7 +66,11 @@ def manualAddData():
             axneg = request.form['ax_neg']
 
             #add the values to the database
-            
+            insertTestData(fxpos, fxneg, fypos, fyneg, axpos, axneg)
+        except:
+            msg = "Error: Test data could not be added to the database."
+        finally:
+            return render_template("result.html", msg = msg)
 
             
             
