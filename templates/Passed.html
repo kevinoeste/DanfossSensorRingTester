@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this template
+-->
+<html>
+    <head>
+        <title>Start Test</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    </head>
+
+
+    <body>
+        
+
+        <h1>Results</h1>
+        <h2>        
+            <div class="topnav">
+            <a href="/">Home</a>
+            <a class="active" href="/Start">Start Test</a>
+            <a href="/data">View Data</a>
+            <a href="/Edit">Edit Database</a>
+            <a href="#about">Set/Reset Database</a>
+          </div> </h2>
+
+        <H3>
+            <center><d1>
+                Pass
+            </d1></center>
+
+            <br>Test Results: <br> <br>
+
+            <table border = 1>
+                <thead>
+                    <tr>
+                        <th>Serial Number</th>
+                        <th>Timestamp</th>
+                        <th>AX+ (V)</th>
+                        <th>AX- (V)</th>
+                        <th>FX+ (V)</th>
+                <th>FX- (V)</th>
+                        <th>FY+ (V)</th>
+                        <th>FY- (V)</th>
+                        <th>X displacement (mm)</th>
+                        <th>Y displacement (mm)</th>
+                        <th>Z displacement (mm)</th>
+                        <th>Sensitivity (V/mm)</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for item in data %}
+                    <tr>
+                        <td>{{ item.SN }}</td>
+                        <td>{{ item.Time }}</td>
+                        <td>{{ item.x_dis }}</td>
+                        <td>{{ item.y_dis }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody> 
+            
+                    
+            </table>    
+           
+	
+
+        </H3> 
+    </body>
+</html>

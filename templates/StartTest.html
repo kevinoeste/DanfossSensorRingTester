@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this template
+-->
+<html>
+    <head>
+        <title>Start Test</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    </head>
+    <body>
+
+        <h1>Start Test</h1>
+        <h2>        
+            <div class="topnav">
+            <a href="/">Home</a>
+            <a class="active" href="/Start">Start Test</a>
+            <a href="/data">View Data</a>
+            <a href="/Edit">Edit Database</a>
+            <a href="#about">Set/Reset Database</a>
+          </div> </h2>
+
+        <H3>
+            
+            Type in Serial Number Below<br><br>
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                {{ form.SerialNum.label }} {{ form.SerialNum() }}
+                {% if form.SerialNum.errors %}
+                    <ul>
+                        {% for error in form.SerialNum.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                {{ form.submit() }}
+            </form>
+            
+
+        </H3> 
+    </body>
+</html>
