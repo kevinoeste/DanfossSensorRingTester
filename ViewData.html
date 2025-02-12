@@ -5,11 +5,23 @@
         <title>Sensor Ring Test Data</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     </head>
     <body>
         <h1>Test data for {{SerialNo}}</h1>
-        <br>
-        <table border = 1>
+
+        <h2>
+        <div class="topnav">
+            <a href="/">Home</a>
+            <a href="/Start">Start Test</a>
+            <a class="active" href="/data">View Data</a>
+            <a href="/Edit">Edit Database</a>
+            <a href="#about">Set/Reset Database</a>
+          </div> 
+        </h2>
+
+        <h3>
+        <table border=1>
             <thead>
                 <tr>
                     <th>Serial Number</th>
@@ -17,7 +29,7 @@
                     <th>AX+ (V)</th>
                     <th>AX- (V)</th>
                     <th>FX+ (V)</th>
-		    <th>FX- (V)</th>
+		            <th>FX- (V)</th>
                     <th>FY+ (V)</th>
                     <th>FY- (V)</th>
                     <th>X displacement (mm)</th>
@@ -26,24 +38,20 @@
                     <th>Sensitivity (V/mm)</th>
                 </tr>
             </thead>
-         
-            {% for row in rows %}
-                <tr>
-                    <td>{{row["serialNo"}}</td>
-                    <td>{{row["timestamp"}}</td>
-                    <td>{{row["axPos"}}</td>
-                    <td>{{row["axNeg"}}</td>
-                    <td>{{row["fxPos"}}</td>
-		    <td>{{row["fxNeg"}}</td>
-                    <td>{{row["fyPos"}}</td>
-                    <td>{{row["fyNeg"}}</td>
-                    <td>{{row["x"}}</td>
-                    <td>{{row["y"}}</td>
-                    <td>{{row["z"}}</td>
-                    <td>{{row["sensitvity"}}</td>	
-                </tr>
+
+            {% for item in users %}
+            <tr>
+                <td>{{ item.id }}</td>
+                <td>{{ item.TimeS }}</td>
+                <td>{{ item.x_dis }}</td>
+                
+            </tr>
             {% endfor %}
+        
+                
         </table>
-        <a href ="{{ url_for('index')}}">Back to homepage</a>
+
+        </h3>
     </body>
 </html>
+
