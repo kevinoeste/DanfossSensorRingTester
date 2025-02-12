@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect
 import sqlite3 as sql
 import datetime
+import random
 
 app = Flask(__name__)
 
@@ -88,7 +89,14 @@ def manualAddData():
         finally:
             return render_template("result.html", msg = msg)
 
-
+@app.route('/addRandomData')
+def addRandomData():
+    try:
+        randomTestData(5)
+        msg = "Data added"
+    except:
+        msg = "Error: Cannot add the random test data"
+    return render_template('result.html', msg = msg)
 @app.route('/resetDB')
 def resetDB():
     try:
