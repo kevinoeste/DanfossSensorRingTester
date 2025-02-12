@@ -4,10 +4,7 @@ import datetime
 
 app = Flask(__name__)
 
-#set FLASK_APP = server
-
-conn = sqlite3.connect('testData.db')
-print("Connected to testData.")
+#set FLASK_APP = testFixture.py
 
 #initialize inductor voltage values
 fx_plus = 0
@@ -29,11 +26,18 @@ isVTT = False
 test_no = 0
 
 def insertTestData(fxpos, fxneg, fypos, fyneg, axpos, axneg):
-    insertCommand = """INSERT INTO SensorData(timestamp, fx_pos, fx_neg, fy_pos, fy_neg, ax_pos, ax_neg) VALUES
-    (""" + str(datetime.datetime.now()) + ", " + str(fxpos) + ", " + str(fxneg) + ", " + str(fypos) + """, 
-    """ + str(fyneg) + ", " + str(axpos) + ", " + str(axneg) + ")"
-    conn.execute(insertCommand)
-
+    try:
+        conn = sql.connect('testData.db')
+        print("Connected to testData.")
+        testData = (fxpos, fxneg, fypos, fyneg, axpos, axneg)
+        conn.execute("INSERT INTO SensorData(timestamp, fx_pos, fx_neg, fy_pos, fy_neg, ax_pos, ax_neg) VALUES (CURRENT_TIMESTAMP, ?, ?, ?, ?, ?, ?)", testData)
+        conn.commit()
+        conn.close()
+    except:
+        print("Error inserting values into the table.")
+def randomTestData(numEntries):
+    for x in range (0, numEntries):
+        insertTestData(random.random(), random.random(), random.random(), random.random(), random.random(), random.random())
 #define upper and lower limits of sensitivity to determine pass/fail
 
 #flask page control
@@ -45,8 +49,19 @@ def index():
 #View the database
 @app.route('/viewDatabase')
 def viewData():
-    conn.execute("SELECT * FROM SensorData;")
-    return render_template('view_data.html')
+    try:    
+        conn = sql.connect('testData.db')
+        print("Connected to testData.")
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM SensorData;")
+        results = cursor.fetchall()
+        msg = ""
+        conn.close()
+    except:
+        results = ["#"]
+        msg = "Error: Could not connect to database."
+    finally:
+        return render_template('view_data.html', msg = msg, results = results)
 
 #display the HTML form for adding the data
 @app.route('/manualAddDataForm', methods = ['POST', 'GET'])
@@ -73,16 +88,39 @@ def manualAddData():
         finally:
             return render_template("result.html", msg = msg)
 
-            
+
+@app.route('/resetDB')
+def resetDB():
+    try:
+        conn = sql.connect('testData.db')
+        print("Connected to testData.")
+        conn.execute("DELETE * FROM SensorData;")
+        msg = "Table SensorData has been cleared."
+    except:
+        msg = "Error: Table SensorData could not be cleared."
+    finally:
+        conn.close()
+        return render_template("result.html", msg = msg)
+
+@app.route('/editParameters')
+def editParameters():
+    #don't know if we're gonna use this, but I'll have it here just in case
+    #would allow the user to edit how the test is run
+    #not yet implemented, low priority
+    return render_template("index.html")
             
 
-
+@app.route('/startTest')
 def startTest():
+    conn = sql.connect('testData.db')
+    print("Connected to testData.")
     test_no += 1
     #Get movement and displacement values from microcomputer and black box
     conn.execute("INSERT INTO SensorData (timestamp, fx_pos, fx_neg, fy_pos, fy_neg, ax_pos, ax_neg)  VALUES (CURRENT_TIME(), fx_plus, fx_minus, fy_plus, fy_minus, ax_plus, ax_minus);")
     #calculate sensitivity and insert into database
     #determine if the sensors in the sensor ring pass or fail the test
+    conn.close()
     return render_template('test_results.html')
 
-
+if __name__ == "__main__":
+    app.run(debug = True)
