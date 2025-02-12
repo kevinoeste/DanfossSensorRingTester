@@ -8,15 +8,28 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
         <title>Sensor Ring Test Program</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     </head>
+
+
+    <header>
+        <H1>Sensor Ring Test Program</H1>
+        <H2>
+        <div class="topnav">
+            <a class="active" href="/">Home</a>
+            <a href="/Start">Start Test</a>
+            <a href="/data">View Data</a>
+            <a href="/Edit">Edit Database</a>
+            <a href="#about">Set/Reset Database</a>
+          </div> 
+        </H2>
+    </header>
     <body>
-        <H1>Welcome! Please choose an option.</H1> <br>
-	<h4>
+        
+
+	<h3>
 	Note: The database for this program is STORED LOCALLY <br>
-        <a href ="{{url_for('startTest')}}">Start Test</a> <br>
-        <a href ="{{url_for('viewData')}}">View Data</a> <br>
-        <a href ="{{url_for('editParameters')}}">Edit Test Parameters</a> <br>
-	<a href ="{{url_for('resetDB')}}">Set/Reset Database</a? <br>
-	</h4>
+	
+	</h3>
     </body>
 </html>
