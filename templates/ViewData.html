@@ -8,7 +8,7 @@
         <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     </head>
     <body>
-        <h1>Test data for {{SerialNo}}</h1>
+        <h1>Test data{{SerialNo}}</h1>
 
         <h2>
         <div class="topnav">
@@ -21,6 +21,10 @@
         </h2>
 
         <h3>
+
+        <br> <bigf>All Test Results:</bigf> <br> <br>
+
+        <tbc> 
         <table border=1>
             <thead>
                 <tr>
@@ -32,10 +36,8 @@
 		            <th>FX- (V)</th>
                     <th>FY+ (V)</th>
                     <th>FY- (V)</th>
-                    <th>X displacement (mm)</th>
-                    <th>Y displacement (mm)</th>
-                    <th>Z displacement (mm)</th>
-                    <th>Sensitivity (V/mm)</th>
+                    <th>Pass/Fail</th>
+
                 </tr>
             </thead>
 
@@ -43,14 +45,20 @@
             <tr>
                 <td>{{ item.id }}</td>
                 <td>{{ item.TimeS }}</td>
-                <td>{{ item.x_dis }}</td>
+                <td>{{ item.zp_dis }}</td>
+                <td>{{ item.zn_dis }}</td>
+                <td>{{ item.xp_dis }}</td>
+                <td>{{ item.xn_dis }}</td>
+                <td>{{ item.yp_dis }}</td>
+                <td>{{ item.yn_dis }}</td>
+                <td>{{ item.pf }}</td>
                 
             </tr>
             {% endfor %}
         
                 
         </table>
-
+        </tbc>
         </h3>
     </body>
 </html>
