@@ -28,6 +28,7 @@
         <table border=1>
             <thead>
                 <tr>
+		    <th>Test Number</th>
                     <th>Serial Number</th>
                     <th>Timestamp</th>
                     <th>AX+ (V)</th>
@@ -43,6 +44,7 @@
 
             {% for item in users %}
             <tr>
+		<td>{{ item.TestN }}</td>
                 <td>{{ item.id }}</td>
                 <td>{{ item.TimeS }}</td>
                 <td>{{ item.zp_dis }}</td>
