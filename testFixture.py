@@ -1,9 +1,9 @@
 from datetime import datetime
 from flask import Flask, render_template, request, session
-from flask_sqlalchemy import SQLAlchemy
-from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
-from wtforms.validators import DataRequired
+from flask_sqlalchemy import SQLAlchemy # type: ignore
+from flask_wtf import FlaskForm # type: ignore
+from wtforms import StringField, SubmitField # type: ignore
+from wtforms.validators import DataRequired # type: ignore
 
 import sqlite3 as sql
 import random
@@ -46,10 +46,17 @@ isVTT = False
 
 test_no = 0
 
-class User(db.Model):
-    id = db.Column(db.String(10), nullable=False, primary_key=True)
+class SenData(db.Model):
+    TestN = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String(10), nullable=False)
     TimeS = db.Column(db.Integer)
-    x_dis = db.Column(db.Integer)
+    xp_dis = db.Column(db.Float)
+    xn_dis = db.Column(db.Float)
+    yp_dis = db.Column(db.Float)
+    yn_dis = db.Column(db.Float)
+    zp_dis = db.Column(db.Float)
+    zn_dis = db.Column(db.Float)
+    pf = db.Column(db.String(10), nullable=False)
 
 class MyForm(FlaskForm):
     SerialNum = StringField('SN', validators=[DataRequired()])
@@ -62,11 +69,17 @@ with app.app_context():
     db.create_all()
 #define upper and lower limits of sensitivity to determine pass/fail
 
+
 def insertTestData(fxpos, fxneg, fypos, fyneg, axpos, axneg):
-    insertCommand = """INSERT INTO SensorData(timestamp, fx_pos, fx_neg, fy_pos, fy_neg, ax_pos, ax_neg) VALUES
-    (""" + str(datetime.now()) + ", " + str(fxpos) + ", " + str(fxneg) + ", " + str(fypos) + """, 
-    """ + str(fyneg) + ", " + str(axpos) + ", " + str(axneg) + ")"
-    conn.execute(insertCommand)
+    try:
+        conn = sql.connect('testData.db')
+        print("Connected to testData.")
+        testData = (fxpos, fxneg, fypos, fyneg, axpos, axneg)
+        conn.execute("INSERT INTO SensorData(timestamp, fx_pos, fx_neg, fy_pos, fy_neg, ax_pos, ax_neg) VALUES (CURRENT_TIMESTAMP, ?, ?, ?, ?, ?, ?)", testData)
+        conn.commit()
+        conn.close()
+    except:
+        print("Error inserting values into the table.")
 
 
 
@@ -78,7 +91,7 @@ def index():
 
 @app.route("/data")
 def View():
-    allu = User.query.all()
+    allu = SenData.query.all()
     return render_template('ViewData.html', users=allu)
 
 @app.route("/Start", methods=['GET', 'POST'])
@@ -105,24 +118,41 @@ def DoTest():
 
 @app.route("/Testing", methods=['GET','POST'])
 def Testing():
-    x_dis = random.randint(0, 300)
-    y_dis = random.randint(0, 300)
+    low=1.4
+    high=2
+
+    xp_dis = round(random.uniform(low, high), 2)
+    xn_dis = round(random.uniform(low, high), 2)
+    yp_dis = round(random.uniform(low, high), 2)
+    yn_dis = round(random.uniform(low, high), 2)
+    zp_dis = round(random.uniform(low, high), 2)
+    zn_dis = round(random.uniform(low, high), 2)
     FTime = datetime.now()
     Time = FTime.strftime("%m-%d-%Y %H:%M:%S")
     SN = session.get('SN')
 
-    data = [
-    {'SN': SN, 'Time': Time, 'x_dis': x_dis, 'y_dis': y_dis}   
-    ]
+    TestNum1 = SenData.query.order_by(SenData.TestN).value(0)
+    
+    TestNum= 12
+    
 
-    user = User(id=SN, TimeS=Time, x_dis=x_dis)
-    db.session.add(user)
-    db.session.commit()
-    
-    
-    if x_dis < 100:
+    x1=int(xp_dis*100)
+    if x1 < 150 | x1 > 180:
+        data = [
+        {'SN': SN, 'Time': TestNum1, 'xp_dis': xp_dis, 'xn_dis': xn_dis, 'yp_dis': yp_dis, 'yn_dis': yn_dis, 'zp_dis': zp_dis, 'zn_dis': zn_dis,'pf':"Pass"}   
+        ]
+
+        datas = SenData(TestN=TestNum, id=SN, TimeS=Time, xp_dis=xp_dis, xn_dis=xn_dis, yp_dis=yp_dis, yn_dis=yn_dis, zp_dis=zp_dis, zn_dis=zn_dis,pf="Pass")
+        db.session.add(datas)
+        db.session.commit()
         return render_template('Passed.html',data=data)
     else:
+        data = [
+        {'SN': SN, 'Time': TestNum1, 'xp_dis': xp_dis, 'xn_dis': xn_dis, 'yp_dis': yp_dis, 'yn_dis': yn_dis, 'zp_dis': zp_dis, 'zn_dis': zn_dis,'pf':"Fail"}   
+        ]
+        datas = SenData(TestN=TestNum, id=SN, TimeS=Time, xp_dis=xp_dis, xn_dis=xn_dis, yp_dis=yp_dis, yn_dis=yn_dis, zp_dis=zp_dis, zn_dis=zn_dis,pf="Fail")
+        db.session.add(datas)
+        db.session.commit()
         return render_template('Fail.html',data=data)
 
 
@@ -156,3 +186,4 @@ def startTest():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
