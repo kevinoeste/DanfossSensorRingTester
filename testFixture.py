@@ -63,7 +63,7 @@ class MyForm(FlaskForm):
     submit = SubmitField('Start Test')
     
 def __repr__(self):
-    return f'<User  {self.id}>'
+    return f'<SenData  {self.TestN}>'
 
 with app.app_context():
     db.create_all()
@@ -91,7 +91,7 @@ def index():
 
 @app.route("/data")
 def View():
-    allu = SenData.query.all()
+    allu = SenData.query.order_by(SenData.TestN.desc()).all()
     return render_template('ViewData.html', users=allu)
 
 @app.route("/Start", methods=['GET', 'POST'])
@@ -131,15 +131,21 @@ def Testing():
     Time = FTime.strftime("%m-%d-%Y %H:%M:%S")
     SN = session.get('SN')
 
-    TestNum1 = SenData.query.order_by(SenData.TestN).value(0)
+
+    TestNum1 = SenData.query.order_by(SenData.TestN.desc()).first()
+    if TestNum1 is None:
+        TestNum = 1
+    else:
+        TestNum= int(TestNum1.TestN) +1
     
-    TestNum= 12
+    
+    #TestNum= int(TestNum1.TestN) +1
     
 
     x1=int(xp_dis*100)
     if x1 < 150 | x1 > 180:
         data = [
-        {'SN': SN, 'Time': TestNum1, 'xp_dis': xp_dis, 'xn_dis': xn_dis, 'yp_dis': yp_dis, 'yn_dis': yn_dis, 'zp_dis': zp_dis, 'zn_dis': zn_dis,'pf':"Pass"}   
+        {'SN': SN, 'Time': TestNum, 'xp_dis': xp_dis, 'xn_dis': xn_dis, 'yp_dis': yp_dis, 'yn_dis': yn_dis, 'zp_dis': zp_dis, 'zn_dis': zn_dis,'pf':"Pass"}   
         ]
 
         datas = SenData(TestN=TestNum, id=SN, TimeS=Time, xp_dis=xp_dis, xn_dis=xn_dis, yp_dis=yp_dis, yn_dis=yn_dis, zp_dis=zp_dis, zn_dis=zn_dis,pf="Pass")
@@ -148,7 +154,7 @@ def Testing():
         return render_template('Passed.html',data=data)
     else:
         data = [
-        {'SN': SN, 'Time': TestNum1, 'xp_dis': xp_dis, 'xn_dis': xn_dis, 'yp_dis': yp_dis, 'yn_dis': yn_dis, 'zp_dis': zp_dis, 'zn_dis': zn_dis,'pf':"Fail"}   
+        {'SN': SN, 'Time': TestNum, 'xp_dis': xp_dis, 'xn_dis': xn_dis, 'yp_dis': yp_dis, 'yn_dis': yn_dis, 'zp_dis': zp_dis, 'zn_dis': zn_dis,'pf':"Fail"}   
         ]
         datas = SenData(TestN=TestNum, id=SN, TimeS=Time, xp_dis=xp_dis, xn_dis=xn_dis, yp_dis=yp_dis, yn_dis=yn_dis, zp_dis=zp_dis, zn_dis=zn_dis,pf="Fail")
         db.session.add(datas)
