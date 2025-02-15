@@ -26,9 +26,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
             <center><d2>
                 Fail
             </d2></center>
-
-            <br>Test Results: <br> <br>
-
+            <br> <bigf>Test Results:</bigf> <br> <br>
+            
+            
             <table border = 1>
                 <thead>
                     <tr>
@@ -37,13 +37,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                         <th>AX+ (V)</th>
                         <th>AX- (V)</th>
                         <th>FX+ (V)</th>
-                <th>FX- (V)</th>
+                        <th>FX- (V)</th>
                         <th>FY+ (V)</th>
                         <th>FY- (V)</th>
-                        <th>X displacement (mm)</th>
-                        <th>Y displacement (mm)</th>
-                        <th>Z displacement (mm)</th>
-                        <th>Sensitivity (V/mm)</th>
                     </tr>
                 </thead>
 
@@ -52,8 +48,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                     <tr>
                         <td>{{ item.SN }}</td>
                         <td>{{ item.Time }}</td>
-                        <td>{{ item.x_dis }}</td>
-                        <td>{{ item.y_dis }}</td>
+                        <td>{{ item.zp_dis }}</td>
+                        <td>{{ item.zn_dis }}</td>
+                        <td>{{ item.xp_dis }}</td>
+                        <td>{{ item.xn_dis }}</td>
+                        <td>{{ item.yp_dis }}</td>
+                        <td>{{ item.yn_dis }}</td>
                     </tr>
                     {% endfor %}
                 </tbody> 
