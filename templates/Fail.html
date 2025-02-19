@@ -26,9 +26,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
             <center><d2>
                 Fail
             </d2></center>
-            <br> <bigf>Test Results:</bigf> <br> <br>
-            
-            
+
+            <br>Test Results: <br> <br>
+
             <table border = 1>
                 <thead>
                     <tr>
@@ -40,20 +40,22 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                         <th>FX- (V)</th>
                         <th>FY+ (V)</th>
                         <th>FY- (V)</th>
+                        <th>Pass/Fail</th>
                     </tr>
                 </thead>
 
                 <tbody>
                     {% for item in data %}
-                    <tr>
+                    <tr>       
                         <td>{{ item.SN }}</td>
                         <td>{{ item.Time }}</td>
-                        <td>{{ item.zp_dis }}</td>
-                        <td>{{ item.zn_dis }}</td>
-                        <td>{{ item.xp_dis }}</td>
-                        <td>{{ item.xn_dis }}</td>
-                        <td>{{ item.yp_dis }}</td>
-                        <td>{{ item.yn_dis }}</td>
+                        <td>{{ item.AXP }}</td>
+                        <td>{{ item.AXN }}</td>
+                        <td>{{ item.FXP }}</td>
+                        <td>{{ item.FXN }}</td>
+                        <td>{{ item.FYP }}</td>
+                        <td>{{ item.FYN }}</td>
+                        <td>{{ item.pf }}</td>
                     </tr>
                     {% endfor %}
                 </tbody> 
