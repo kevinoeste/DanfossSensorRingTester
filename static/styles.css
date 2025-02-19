@@ -56,10 +56,16 @@ h3{
   padding:20px;
   margin:30px;
   background-color: #D3D3D3;
-  height:600px;
+  height:auto;
   border:3px solid black;
   text-decoration: none;
-  
+}
+h4
+{
+  width: fit-content;
+  background-color: #ffffff;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 header{
@@ -104,11 +110,37 @@ round
   text-decoration: none;
   
 }
+
 bigf
 {
   font-size: 40px;
 }
+
 tbc
 {
   background: #ffffff;
+}
+/*Table Styling*/
+table
+{
+  
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th, td {
+  text-align: left;
+  padding: 15px;
+  border-bottom: 1px solid black;
+  border-right: 1px solid black;
+  border: 2px solid #000000;
+}
+
+tr:nth-child(even) {
+  background-color: #ffc2c2;
+}
+
+.center {
+  margin-left: auto;
+  margin-right: auto;
 }
