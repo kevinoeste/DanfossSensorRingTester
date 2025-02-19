@@ -21,15 +21,28 @@
         </h2>
 
         <h3>
+        <br>
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            {{ form.SerialNum.label }} {{ form.SerialNum() }}
+            {% if form.SerialNum.errors %}
+                <ul>
+                    {% for error in form.SerialNum.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {{ form.submit() }}
+        </form>
 
-        <br> <bigf>All Test Results:</bigf> <br> <br>
-
-        <tbc> 
-        <table border=1>
+        <br> <bigf>All Test Results:</bigf> <br>
+        <div><h4>
+     
+        <table>
             <thead>
                 <tr>
-		    <th>Test Number</th>
-                    <th>Serial Number</th>
+                    <th>Test #</th>
+                    <th>Serial #</th>
                     <th>Timestamp</th>
                     <th>AX+ (V)</th>
                     <th>AX- (V)</th>
@@ -42,17 +55,17 @@
                 </tr>
             </thead>
 
-            {% for item in users %}
+            {% for item in AllData %}
             <tr>
-		<td>{{ item.TestN }}</td>
+		        <td>{{ item.TestN }}</td>
                 <td>{{ item.id }}</td>
                 <td>{{ item.TimeS }}</td>
-                <td>{{ item.zp_dis }}</td>
-                <td>{{ item.zn_dis }}</td>
-                <td>{{ item.xp_dis }}</td>
-                <td>{{ item.xn_dis }}</td>
-                <td>{{ item.yp_dis }}</td>
-                <td>{{ item.yn_dis }}</td>
+                <td>{{ item.AXP }}</td>
+                <td>{{ item.AXN }}</td>
+                <td>{{ item.FXP }}</td>
+                <td>{{ item.FXN }}</td>
+                <td>{{ item.FYP }}</td>
+                <td>{{ item.FYN }}</td>
                 <td>{{ item.pf }}</td>
                 
             </tr>
@@ -60,7 +73,8 @@
         
                 
         </table>
-        </tbc>
+        
+    </h4></div>
         </h3>
     </body>
 </html>
