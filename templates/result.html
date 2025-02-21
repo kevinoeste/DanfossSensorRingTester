@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this template
+-->
+<html>
+    <head>
+        <title>{{msg}}</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    </head>
+    <body>
+
+    <h1>Manual Data Entry</h1>
+    <h2>        
+        <div class="topnav">
+        <a href="/">Home</a>
+        <a href="/Start">Start Test</a>
+        <a href="/data">View Data</a>
+        <a class="active" href="/Edit">Edit Database</a>
+        <a href="#about">Set/Reset Database</a>
+        </div> 
+    </h2>
+    <H3>
+      {{ msg }}
+      <br>
+      <a href = "/index">back to homepage </a>
+    </H3> 
+    </body>
+</html>

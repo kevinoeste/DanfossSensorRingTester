@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this template
+-->
+<html>
+    <head>
+        <title>Start Test</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    </head>
+    <body>
+
+        <h1>Start Test</h1>
+        <h2>        
+            <div class="topnav">
+            <a href="/">Home</a>
+            <a href="/Start">Start Test</a>
+            <a href="/data">View Data</a>
+            <a class="active" href="/Edit">Edit Database</a>
+            <a href="#about">Set/Reset Database</a>
+          </div> </h2>
+
+        <H3>
+            
+            Type in Serial Number Below<br><br>
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                {{ form.SerialNum.label }} {{ form.SerialNum() }}<br>
+                {{ form.FXP.label }} {{ form.FXP() }}<br>
+                {{ form.FXN.label }} {{ form.FXN() }}<br>
+                {{ form.FYP.label }} {{ form.FYP() }}<br>
+                {{ form.FYN.label }} {{ form.FYN() }}<br>
+                {{ form.AXP.label }} {{ form.AXP() }}<br>
+                {{ form.AXN.label }} {{ form.AXN() }}<br>
+                
+
+                {% if form.SerialNum.errors %}
+                    <ul>
+                        {% for error in form.SerialNum.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                {{ form.submit() }}
+            </form>
+            
+
+        </H3> 
+    </body>
+</html>

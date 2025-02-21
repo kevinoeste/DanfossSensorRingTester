@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Sensor Ring Test Data</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    </head>
+    <body>
+        <h1>Test data{{SerialNo}}</h1>
+
+        <h2>
+        <div class="topnav">
+            <a href="/">Home</a>
+            <a href="/Start">Start Test</a>
+            <a class="active" href="/data">View Data</a>
+            <a href="/Edit">Edit Database</a>
+            <a href="#about">Set/Reset Database</a>
+          </div> 
+        </h2>
+
+        <h3>
+        <br>
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            {{ form.SerialNum.label }} {{ form.SerialNum() }}
+            {% if form.SerialNum.errors %}
+                <ul>
+                    {% for error in form.SerialNum.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {{ form.submit() }}
+        </form>
+
+        <br> <bigf>All Test Results:</bigf> <br>
+        <div><h4>
+     
+        <table>
+            <thead>
+                <tr>
+                    <th>Test #</th>
+                    <th>Serial #</th>
+                    <th>Timestamp</th>
+                    <th>AX+ (V)</th>
+                    <th>AX- (V)</th>
+                    <th>FX+ (V)</th>
+		            <th>FX- (V)</th>
+                    <th>FY+ (V)</th>
+                    <th>FY- (V)</th>
+                    <th>Pass/Fail</th>
+
+                </tr>
+            </thead>
+
+            {% for item in AllData %}
+            <tr>
+		        <td>{{ item.TestN }}</td>
+                <td>{{ item.id }}</td>
+                <td>{{ item.TimeS }}</td>
+                <td>{{ item.AXP }}</td>
+                <td>{{ item.AXN }}</td>
+                <td>{{ item.FXP }}</td>
+                <td>{{ item.FXN }}</td>
+                <td>{{ item.FYP }}</td>
+                <td>{{ item.FYN }}</td>
+                <td>{{ item.pf }}</td>
+                
+            </tr>
+            {% endfor %}
+        
+                
+        </table>
+        
+    </h4></div>
+        </h3>
+    </body>
+</html>
