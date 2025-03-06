@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this template
+-->
+<html>
+    <head>
+        <title>Sensor Ring Test Program</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    </head>
+
+
+    <header>
+        <H1>Sensor Ring Test Program</H1>
+        <H2>
+        <div class="topnav">
+            <a href="/">Home</a>
+            <a class="active" href="/Start">Start Test</a>
+            <a href="/data">View Data</a>
+            <a href="/Edit">Edit Database</a>
+            <a href="/Cpp">CPP Test</a>
+          </div> 
+        </H2>
+    </header>
+    <body>
+        
+
+	<h3>
+        <div class="PHdr">Error: </div>
+         
+        <br><br>
+        <div class="a">
+            {{ error_message }}
+        </div>
+        
+        
+        <br><br> <round><a href ="/Start" style = "text-decoration: none; color:white;">Return to Start Test</a> </round>
+	
+	</h3>
+    </body>
+</html>

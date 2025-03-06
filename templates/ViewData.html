@@ -21,7 +21,9 @@
         </h2>
 
         <h3>
-        <br>
+        <div class="VD">Test Results</div> <br>
+
+        <div class="form-container"> 
         <form method="POST">
             {{ form.hidden_tag() }}
             {{ form.SerialNum.label }} {{ form.SerialNum() }}
@@ -34,26 +36,37 @@
             {% endif %}
             {{ form.submit() }}
         </form>
+        </div>
 
-        <br> <bigf>All Test Results:</bigf> <br>
+
+
         <div><h4>
-     
-        <table>
-            <thead>
-                <tr>
-                    <th>Test #</th>
-                    <th>Serial #</th>
-                    <th>Timestamp</th>
-                    <th>AX+ (V)</th>
-                    <th>AX- (V)</th>
-                    <th>FX+ (V)</th>
-		            <th>FX- (V)</th>
-                    <th>FY+ (V)</th>
-                    <th>FY- (V)</th>
-                    <th>Pass/Fail</th>
+            <div class="d">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Test #</th>
+                            <th>Serial #</th>
+                            <th>Timestamp</th>
+                            <th>AX+ (V)</th>
+                            <th>AX- (V)</th>
+                            <th>FX+ (V)</th>
+                            <th>FX- (V)</th>
+                            <th>FY+ (V)</th>
+                            <th>FY- (V)</th>
+                            <th>Pass/Fail</th>
+        
+                        </tr>
+                    </thead>
+                </table>
+            </div>
 
-                </tr>
-            </thead>
+
+
+
+
+        <div class="scroll">
+        <table>
 
             {% for item in AllData %}
             <tr>
@@ -73,7 +86,7 @@
         
                 
         </table>
-        
+        </div>
     </h4></div>
         </h3>
     </body>

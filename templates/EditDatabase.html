@@ -27,6 +27,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
             Type in Serial Number Below<br><br>
             <form method="POST">
                 {{ form.hidden_tag() }}
+                {{ form.TestNum.label }} {{ form.TestNum }} <br>
                 {{ form.SerialNum.label }} {{ form.SerialNum() }}<br>
                 {{ form.FXP.label }} {{ form.FXP() }}<br>
                 {{ form.FXN.label }} {{ form.FXN() }}<br>
