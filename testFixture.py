@@ -1,10 +1,12 @@
 from datetime import datetime
-from flask import Flask, render_template, request, session
+from flask import Flask, render_template, request, session, Response
 from flask_sqlalchemy import SQLAlchemy 
 from flask_wtf import FlaskForm 
 from wtforms import StringField, SubmitField 
-from wtforms.validators import DataRequired 
+from wtforms.validators import DataRequired
 
+import array, serial,time, threading
+import subprocess 
 import webview
 import sqlite3 as sql
 import random
@@ -12,6 +14,7 @@ import os
 
 
 app = Flask(__name__)
+data_lock = threading.Lock()
 
 #Uncomment command below to open window when code is ran. Also must change code at bottom of file
 #window = webview.create_window('Sensor Ring Test Program',app)
@@ -49,13 +52,26 @@ class MySearch(FlaskForm):
 
 #Used to create form for manual data entry.
 class ManualEntry(FlaskForm):
-    SerialNum = FXP = StringField('SN:    ', validators=[DataRequired()])
+    TestNum = StringField('Test Number:', validators=[DataRequired()])
+    SerialNum = StringField('SN:', validators=[DataRequired()])
     FXP = StringField('FXP:', validators=[DataRequired()])
     FXN = StringField('FXN:', validators=[DataRequired()])
     FYP = StringField('FYP:', validators=[DataRequired()])
     FYN = StringField('FYN:', validators=[DataRequired()])
     AXP = StringField('AXP:', validators=[DataRequired()])
     AXN = StringField('AXN:', validators=[DataRequired()])
+    submit = SubmitField('Submit Data')
+
+#Used to edit a database value.
+class ManualEntryEdit(FlaskForm):
+    TestNum = StringField('Test Number:', validators=[DataRequired()])
+    SerialNum = StringField('SN:')
+    FXP = StringField('FXP:')
+    FXN = StringField('FXN:')
+    FYP = StringField('FYP:')
+    FYN = StringField('FYN:')
+    AXP = StringField('AXP:')
+    AXN = StringField('AXN:')
     submit = SubmitField('Submit Data')
     
 def __repr__(self):
@@ -68,27 +84,27 @@ with app.app_context():
 #ValueTest checks each sensor value reading and checks if they fall between the spec range
 def ValueTest(FXP,FXN,FYP,FYN,AXP,AXN):
     #Converts float values to integers to allow comparison.
-    TFXP = int(FXP*100)
-    TFXN = int(FXN*100)
-    TFYP = int(FYP*100)
-    TFYN = int(FYN*100)
-    TAXP = int(AXP*100)
-    TAXN = int(AXN*100)
+    TFXP = int(FXP*1000)
+    TFXN = int(FXN*1000)
+    TFYP = int(FYP*1000)
+    TFYN = int(FYN*1000)
+    TAXP = int(AXP*1000)
+    TAXN = int(AXN*1000)
 
     #Checks each sensor value to make sure its within range.
     #If its in the range 1 will be added to TestSum.
     TestSum=0
-    if TFXP > 150 and TFXP < 180:
+    if TFXP > 1500 and TFXP < 1800:
         TestSum +=1
-    if TFXN > 150 and TFXN < 180:
+    if TFXN > 1500 and TFXN < 1800:
         TestSum +=1
-    if TFYP > 150 and TFYP < 180:
+    if TFYP > 1500 and TFYP < 1800:
         TestSum +=1
-    if TFYN > 150 and TFYN < 180:
+    if TFYN > 1500 and TFYN < 1800:
         TestSum +=1
-    if TAXP > 150 and TAXP < 180:
+    if TAXP > 1500 and TAXP < 1800:
         TestSum +=1
-    if TAXN > 150 and TAXN < 180:
+    if TAXN > 1500 and TAXN < 1800:
         TestSum +=1
 
     return TestSum
@@ -99,7 +115,7 @@ def ValueTest(FXP,FXN,FYP,FYN,AXP,AXN):
 def index():
     return render_template('index.html')
 
-
+#Page that displays database data.
 @app.route("/data", methods=['GET', 'POST'])
 def View():
     #Gets all data from database and displays it in return.
@@ -116,6 +132,7 @@ def View():
     
     return render_template('ViewData.html', AllData=AllData,form=form)
 
+#Routes to page to enter sensor ring serial number to begin test.
 @app.route("/Start", methods=['GET', 'POST'])
 def Test():
 
@@ -129,6 +146,56 @@ def Test():
     
     return render_template('StartTest.html',form=form)
 
+#Work in progress-Edits values in database
+@app.route("/EditVal", methods=['GET', 'POST'])
+def EditVal():
+     
+    form = ManualEntryEdit()
+    if form.validate_on_submit():
+
+        #Storing data from form
+        SerialNum = form.SerialNum.data
+        FXP1= form.FXP.data
+        FXN1 = form.FXN.data
+        FYP1 = form.FYP.data
+        FYN1 = form.FYN.data
+        AXP1 = form.AXP.data
+        AXN1 = form.AXN.data
+
+        #Converts strings to floats
+        FXP = float(FXP1)
+        FXN = float(FXN1)
+        FYP = float(FYP1)
+        FYN = float(FYN1)
+        AXP = float(AXP1)
+        AXN = float(AXN1)
+
+        #Stores current date and time and formats it.
+        FTime = datetime.now()
+        Time = FTime.strftime("%m-%d-%Y %H:%M:%S")
+
+        TN = int(form.TestNum.data)
+        row_to_update = SenData.query.get(TN)
+        
+        if row_to_update:
+            row_to_update.FXP = FXP
+            row_to_update.FXN = FXN
+            row_to_update.FYP = FYP
+            row_to_update.FYN = FYN
+            row_to_update.AXP = AXP
+            row_to_update.AXN = FXN
+            db.session.commit()
+        else:
+            print("Not found.")
+
+        datas = [{'SN': SerialNum, 'Time': Time, 'FXP': FXP, 'FXN': FXN, 'FYP': FYP, 'FYN': FYN, 'AXP': AXP, 'AXN': AXN,'pf':"Pass"}]
+
+
+        return render_template('Passed.html',data=datas)
+
+    return render_template('EditDatabase.html', form=form)
+
+#Manual entry database values
 @app.route("/Edit", methods=['GET', 'POST'])
 def Edit():
 
@@ -189,6 +256,7 @@ def Edit():
         
     return render_template('EditDatabase.html', form=form)
 
+
 @app.route("/DoTest")
 def DoTest():
 
@@ -197,6 +265,73 @@ def DoTest():
 
 @app.route("/Testing", methods=['GET','POST'])
 def Testing():
+
+    #Stored array values
+    #0-Voltage read at center
+    #1-Voltage at positive x-axis
+    #2-Voltage at negative x-axis
+    #3-Voltage at positive y-axis
+    #4-Voltage at negative y-axis
+    #5-Voltage at positve z-axis
+    #6-Voltage at negative z-axis
+    #                      0    1    2    3    4    5    6
+    XA = array.array('d',[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    YA = array.array('d',[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    ZA = array.array('d',[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+
+    ComPort = 'COM6'
+    #Attempts to connect to serial port
+    try:
+        ser = serial.Serial(ComPort, 9600, timeout=1)  
+        time.sleep(2) # Wait for serial connection to initialize
+        print("Connected")
+
+    except serial.SerialException as e:
+        print(f"Error opening serial port: {e}")
+        ser = None
+
+    #Sends commands to start test to clearcore
+    ser.write(TestIO.encode())
+
+    #Initialize variables for test
+    TestIO = '1'
+    newdata = None
+    latest_data = None
+    count=0
+
+    #Loops while test is running to recieve data from serial port.
+    while TestIO=='1':
+        if ser.in_waiting > 0:
+            try:
+                line = ser.readline().decode('utf-8').strip()
+                with data_lock:
+                    latest_data = line
+                    
+            except Exception as e:
+                print(f"Error reading serial data: {e}")
+            
+            #Updates newdata if data is new
+            if latest_data != newdata:
+                newdata = latest_data
+                #Stores the voltage readings from each axis.
+                if newdata !='0':
+                    StringData = newdata.split(",")
+                    count = int(StringData[0])
+                    XA[count] = float(StringData[1])
+                    YA[count] = float(StringData[2])
+                    ZA[count] = float(StringData[3])
+
+                print(newdata)
+
+            #Clearcore sends 0 at end of test. Once recieved the while loop ends.
+            if latest_data =='0':
+                TestIO='0'
+                
+        #Checks if new data available from serial port every 0.5 seconds        
+        time.sleep(0.5)
+
+    #Closes serial port  
+    ser.close()
 
     #Creates random values ranging between the low and high values.
     low=1.4
@@ -208,7 +343,28 @@ def Testing():
     FYN = round(random.uniform(low, high), 2)
     AXP = round(random.uniform(low, high), 2)
     AXN = round(random.uniform(low, high), 2)
+    '''
+    result = subprocess.run(['./RunTest'], capture_output=True, text=True)
 
+    if result.returncode != 0:
+        
+        return render_template('index.html')
+    else:
+        # Parse the output
+        output_lines = result.stdout.splitlines()
+        x = array.array('d',[0.0,0.0,0.0,0.0,0.0,0.0])
+        y=0
+        for line in output_lines:
+          x[y]= float(line)
+          y+=1
+          
+    FXP = x[0]
+    FXN = x[1]
+    FYP = x[2]
+    FYN = x[3]
+    AXP = x[4]
+    AXN = x[5]
+    '''
     #Stores current date and time and formats it.
     FTime = datetime.now()
     Time = FTime.strftime("%m-%d-%Y %H:%M:%S")
@@ -216,7 +372,6 @@ def Testing():
     #Gets serial number value from earlier form.
     SN = session.get('SN')
     
-
     #Counter used to keep track of number of tests done.
     #If theres no database entries TestNum starts at 1.
     TestNum1 = SenData.query.order_by(SenData.TestN.desc()).first()
@@ -250,7 +405,6 @@ def Testing():
 
 
 if __name__ == "__main__":
-
     #Uncomment webview and comment out app.run to launch program in seperate window.
     app.run(debug=True)
     #webview.start()
