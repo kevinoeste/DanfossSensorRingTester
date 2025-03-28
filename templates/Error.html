@@ -5,41 +5,39 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
 -->
 <html>
     <head>
-        <title>Start Test</title>
+        <title>Sensor Ring Test Program</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     </head>
-    <body>
 
-        <h1>Start Test</h1>
-        <h2>        
-            <div class="topnav">
+
+    <header>
+        <H1>Sensor Ring Test Program</H1>
+        <H2>
+        <div class="topnav">
             <a href="/">Home</a>
             <a class="active" href="/Start">Start Test</a>
             <a href="/data">View Data</a>
             <a href="/Edit">Edit Database</a>
             <a href="/Info">Info</a>
-          </div> </h2>
-
-        <H3>
-            <script>
-                url = "/Testing";
-                
-                // Simulate an HTTP redirect:
-                setTimeout(function() { // timer
-                window.location.replace(url);
-                }, 1); // 10000 ms = 10 seconds
-                </script>
-
-
-           <bigf>Testing...</bigf><br><br>
-        <round><a href="/Start"style="color: #FFFFFF; text-decoration: none;">Cancel Test</a> </round>
-           
-
+          </div> 
+        </H2>
+    </header>
+    <body>
         
-	
 
-        </H3> 
+	<h3>
+        <div class="PHdr">Error:{{error_type}} </div>
+         
+        <br>
+        <div class="a">
+            Reason: {{ error_message }}
+        </div>
+        
+        
+        <br><br> <round><a href ="/Start" style = "text-decoration: none; color:white;">Return to Start Test</a> </round>
+	
+	</h3>
     </body>
 </html>

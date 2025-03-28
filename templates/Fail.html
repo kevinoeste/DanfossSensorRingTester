@@ -5,31 +5,32 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
 -->
 <html>
     <head>
-        <title>Start Test</title>
+        <title>Sensor Ring Test Program</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     </head>
     <body>
 
-        <h1>Results</h1>
+        <h1>Sensor Ring Test Program</h1>
         <h2>        
             <div class="topnav">
             <a href="/">Home</a>
             <a class="active" href="/Start">Start Test</a>
             <a href="/data">View Data</a>
             <a href="/Edit">Edit Database</a>
-            <a href="#about">Set/Reset Database</a>
+            <a href="/Info">Info</a>
           </div> </h2>
 
         <H3>
             <center><d2>
                 Fail
-            </d2></center>
+            </d2>
 
-            <br>Test Results: <br> <br>
+            <br><bigf>Test Results:</bigf> <br> <br>
 
-            <table border = 1>
+            <div class="d"> 
+            <table>
                 <thead>
                     <tr>
                         <th>Serial Number</th>
@@ -63,8 +64,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                     
             </table>    
            
-	
-
+            </div>
+        </center>
         </H3> 
     </body>
 </html>

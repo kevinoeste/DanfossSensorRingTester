@@ -2,13 +2,13 @@
 
 <html>
     <head>
-        <title>Sensor Ring Test Data</title>
+        <title>Sensor Ring Test Program</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     </head>
     <body>
-        <h1>Test data{{SerialNo}}</h1>
+        <h1>Sensor Ring Test Program</h1>
 
         <h2>
         <div class="topnav">
@@ -16,12 +16,14 @@
             <a href="/Start">Start Test</a>
             <a class="active" href="/data">View Data</a>
             <a href="/Edit">Edit Database</a>
-            <a href="#about">Set/Reset Database</a>
+            <a href="/Info">Info</a>
           </div> 
         </h2>
 
         <h3>
-        <br>
+        <div class="VD">Test Results</div> <br>
+
+        <div class="form-container"> 
         <form method="POST">
             {{ form.hidden_tag() }}
             {{ form.SerialNum.label }} {{ form.SerialNum() }}
@@ -34,26 +36,37 @@
             {% endif %}
             {{ form.submit() }}
         </form>
+        </div>
 
-        <br> <bigf>All Test Results:</bigf> <br>
+
+
         <div><h4>
-     
-        <table>
-            <thead>
-                <tr>
-                    <th>Test #</th>
-                    <th>Serial #</th>
-                    <th>Timestamp</th>
-                    <th>AX+ (V)</th>
-                    <th>AX- (V)</th>
-                    <th>FX+ (V)</th>
-		            <th>FX- (V)</th>
-                    <th>FY+ (V)</th>
-                    <th>FY- (V)</th>
-                    <th>Pass/Fail</th>
+            <div class="d">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Test #</th>
+                            <th>Serial #</th>
+                            <th>Timestamp</th>
+                            <th>AX+ (V)</th>
+                            <th>AX- (V)</th>
+                            <th>FX+ (V)</th>
+                            <th>FX- (V)</th>
+                            <th>FY+ (V)</th>
+                            <th>FY- (V)</th>
+                            <th>Pass/Fail</th>
+        
+                        </tr>
+                    </thead>
+                </table>
+            </div>
 
-                </tr>
-            </thead>
+
+
+
+
+        <div class="scroll">
+        <table>
 
             {% for item in AllData %}
             <tr>
@@ -73,7 +86,7 @@
         
                 
         </table>
-        
+        </div>
     </h4></div>
         </h3>
     </body>
