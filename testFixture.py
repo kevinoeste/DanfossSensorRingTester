@@ -53,6 +53,11 @@ class MyForm(FlaskForm):
     SerialNum = StringField('SN:', validators=[DataRequired()])
     submit = SubmitField('Submit')
 
+#used for the x, y and z axis motor tests
+class testForm(FlaskForm):
+    Axis = StringField('Enter x, y or z:', validators =[DataRequired(), 1])
+    submit = SubmitField('Submit')
+
 #Used to create form to search database.
 class MySearch(FlaskForm):
     SerialNum = StringField('Search by serial #:', validators=[DataRequired()])
@@ -128,6 +133,12 @@ def ValueTest(XA,YA,ZA):
 def index():
     return render_template('index.html')
 
+@app.route('axisTestSelect', methods=['POST', 'GET'])
+def axisTestSelect():
+    return render_template('axisTestSelect.html')
+@app.route('axisTest')
+def axisTest():
+    return render_template('axisTest.html')
 @app.route('/Info')
 def Info():
     return render_template('Info.html')
