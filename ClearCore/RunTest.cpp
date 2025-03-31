@@ -20,9 +20,6 @@
 int32_t velocityLimit = 1000; // pulses per sec
 int32_t accelerationLimit = 10000; // pulses per sec^2
 
-// Declares our user-defined helper function, which is used to command moves to
-// the motor. The definition/implementation of this function is at the  bottom
-// of the example.
 void MoveDistance(int32_t distance);
 void RunTest();
 void ReadVoltage(int count);
@@ -30,6 +27,10 @@ void MoveXaxis(int32_t distance);
 void MoveUpYaxis(int32_t distance);
 void MoveDownYaxis(int32_t distance);
 void MoveZaxis(int32_t distance);
+void RunZTest();
+float ReadXVoltage();
+float ReadYVoltage();
+float ReadZVoltage();
 
 int main() {
     // Sets the input clocking rate.
@@ -49,15 +50,15 @@ int main() {
 
     // Sets the maximum velocity for each move
     motorA.VelMax(velocityLimit);
-	  motorB.VelMax(velocityLimit);
-	  motorZ1.VelMax(velocityLimit);
-	  motorZ2.VelMax(velocityLimit);
+	motorB.VelMax(velocityLimit);
+	motorZ1.VelMax(velocityLimit);
+	motorZ2.VelMax(velocityLimit);
 
     // Set the maximum acceleration for each move
     motorA.AccelMax(accelerationLimit);
-	  motorB.AccelMax(accelerationLimit);
-	  motorZ1.AccelMax(accelerationLimit);
-	  motorZ2.AccelMax(accelerationLimit);
+	motorB.AccelMax(accelerationLimit);
+	motorZ1.AccelMax(accelerationLimit);
+	motorZ2.AccelMax(accelerationLimit);
 
     // Sets up serial communication and waits up to 5 seconds for a port to open.
     // Serial communication is not required for this example to run.
@@ -70,15 +71,15 @@ int main() {
         continue;
     }
 
-	  InputPort.Mode(Connector::USB_CDC);
-	  InputPort.Speed(baudRate);
+	InputPort.Mode(Connector::USB_CDC);
+	InputPort.Speed(baudRate);
     AdcMgr.AdcResolution(adcResolution);
 
     // Enables the motor.
     motorA.EnableRequest(true);
-	  motorB.EnableRequest(true);
-	  motorZ1.EnableRequest(true);
-	  motorZ2.EnableRequest(true);
+	motorB.EnableRequest(true);
+	motorZ1.EnableRequest(true);
+	motorZ2.EnableRequest(true);
 
     // Waits for HLFB to assert. Uncomment these lines if your motor has a
     // "servo on" feature and it is wired to the HLFB line on the connector.
@@ -86,11 +87,12 @@ int main() {
     //while (motor.HlfbState() != MotorDriver::HLFB_ASSERTED) {
     //    continue;
     //}
-	  int16_t input=0;
-	  while(true){
+	int16_t input=0;
+	float xD,yD,zD;
+	while(true){
 			
-		  input = InputPort.CharGet();
-		  while((char)input=='1'){
+		input = InputPort.CharGet();
+		while((char)input=='1'){
 			//Starts tests that moves motors
 			RunTest();
 			
@@ -98,7 +100,100 @@ int main() {
 			SerialPort.SendLine("0");
 			input = 0;
 		}
+		while((char)input=='z'){
+			RunZTest();
+			input = InputPort.CharGet();
+		}
+		
+		while((char)input=='x'){
+			
+			xD = ReadXVoltage();
+			yD = ReadYVoltage();
+			zD = ReadZVoltage();
+			
+			while(xD!=2.15 && yD!=2.00){
+				
+				if(yD<2.00){
+					MoveUpYaxis(1);
+				}
+				else if(yD>2.0){
+					MoveDownYaxis(1);
+				}
+				
+				if(xD < 2.15){
+					MoveXaxis(1);
+				}
+				else if(xD > 2.18){
+					MoveXaxis(-1);
+				}
+				
+			}
+			ReadVoltage(1);
+			
+			while(xD!=1.85 && yD!=2.00){
+				
+				if(yD<2.00){
+					MoveUpYaxis(1);
+				}
+				else{
+					MoveDownYaxis(1);
+				}
+				
+				if(xD < 1.85){
+					MoveXaxis(1);
+				}
+				else{
+					MoveXaxis(-1);
+				}	
+			}
+			
+			ReadVoltage(2);
+			
+			while(xD!=2.00 && yD!=2.15){
+
+				if(xD < 2.00){
+					MoveXaxis(1);
+				}
+				else{
+					MoveXaxis(-1);
+				}
+				if(yD<2.15){
+					MoveUpYaxis(1);
+				}
+				else{
+					MoveDownYaxis(1);
+				}
+			}
+			
+			ReadVoltage(3);
+			
+			while(xD!=2.00 && yD!=1.85){
+
+				if(xD < 2.00){
+					MoveXaxis(1);
+				}
+				else{
+					MoveXaxis(-1);
+				}
+				if(yD<1.85){
+					MoveUpYaxis(1);
+				}
+				else{
+					MoveDownYaxis(1);
+				}
+			}
+			
+			ReadVoltage(4);
+			
+			input = InputPort.CharGet();
+		}
     }
+}
+
+void RunZTest(){
+	
+	MoveZaxis(200);
+	MoveZaxis(-200);
 }
 
 void RunTest(){
@@ -163,6 +258,50 @@ void RunTest(){
 	MoveZaxis(150);	
 }
 
+float ReadXVoltage(){
+		int16_t xResult;
+		xResult = ConnectorA12.State();
+		
+		// Convert the reading to a voltage.
+		double xVoltage;
+		xVoltage = 10.0 * xResult / ((1 << adcResolution) - 1);
+		
+		double Xmm,Ymm,Zmm;
+		Xmm = xVoltage * 0.35;
+		
+		return Xmm;
+}
+
+float ReadYVoltage(){
+		int16_t yResult;
+		yResult = ConnectorA11.State();
+		
+		// Convert the reading to a voltage.
+		double xVoltage,yVoltage,zVoltage;
+
+		yVoltage = 10.0 * yResult / ((1 << adcResolution) - 1);
+
+		double Ymm;
+		Ymm = yVoltage * 0.35;
+		
+		return Ymm;
+
+}
+
+float ReadZVoltage(){
+		int16_t zResult;
+		zResult = ConnectorA10.State();
+		
+		// Convert the reading to a voltage.
+		double zVoltage;
+		zVoltage = 10.0 * zResult / ((1 << adcResolution) - 1);
+		
+		double Zmm;
+		Zmm = zVoltage * 0.35;
+		
+		return Zmm;
+}
+
 void ReadVoltage(int count){
 	int16_t xResult,yResult,zResult;
 	xResult = ConnectorA12.State();
@@ -199,8 +338,6 @@ void MoveXaxis(int32_t distance){
 	while (!motorA.StepsComplete() && !motorB.StepsComplete()) {
 		continue;
 	}
-	
-	Delay_ms(200);
 }
 
 //Moves sensor ring up on Y-axis
@@ -211,7 +348,6 @@ void MoveUpYaxis(int32_t distance){
 	while (!motorA.StepsComplete() && !motorB.StepsComplete()) {
 		continue;
 	}
-	Delay_ms(200);
 }
 
 //Moves sensor ring down on Y-axis
@@ -222,7 +358,6 @@ void MoveDownYaxis(int32_t distance){
 	while (!motorA.StepsComplete() && !motorB.StepsComplete()) {
 		continue;
 	}
-	Delay_ms(200);
 }
 
 //Moves shaft up or down(use negative value to change direction)
@@ -233,7 +368,6 @@ void MoveZaxis(int32_t distance){
 	while (!motorZ1.StepsComplete() && !motorZ2.StepsComplete()) {
 		continue;
 	}
-	Delay_ms(200);
 }
 
 /*------------------------------------------------------------------------------
