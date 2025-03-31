@@ -54,8 +54,8 @@ class MyForm(FlaskForm):
     submit = SubmitField('Submit')
 
 #used for the x, y and z axis motor tests
-class testForm(FlaskForm):
-    Axis = StringField('Enter x, y or z:', validators =[DataRequired(), 1])
+class TestForm(FlaskForm):
+    Axis = StringField('Enter x, y or z:', validators =[DataRequired(), Length(1, 1)])
     submit = SubmitField('Submit')
 
 #Used to create form to search database.
@@ -135,10 +135,24 @@ def index():
 
 @app.route('axisTestSelect', methods=['POST', 'GET'])
 def axisTestSelect():
-    return render_template('axisTestSelect.html')
+    return render_template('axisTestSelect.html', msg = msg)
 @app.route('axisTest')
 def axisTest():
-    return render_template('axisTest.html')
+    try:
+        form = TestForm()
+        if form.validate_on_sumbit():
+            motorChar = form.Axis.data
+            ser = serial.Serial()
+            #using the com port defined by the user
+            ser.port = session['COM']
+            #unsure of the baud rate of the clearcore serial port, assuming 19200 for now
+            ser.baudrate = 19200
+            ser.write(unicode(motorChar))
+            msg = "Sent character to clearCore"
+    except:
+        msg = "Error: Could not communicate with ClearCore"
+    finally:    
+        return render_template('axisTest.html', msg = msg)
 @app.route('/Info')
 def Info():
     return render_template('Info.html')
