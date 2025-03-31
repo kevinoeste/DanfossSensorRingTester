@@ -142,6 +142,7 @@ def axisTest():
         form = TestForm()
         if form.validate_on_sumbit():
             motorChar = form.Axis.data
+            session['MC'] = motorChar
             ser = serial.Serial()
             #using the com port defined by the user
             ser.port = session['COM']
@@ -152,7 +153,21 @@ def axisTest():
     except:
         msg = "Error: Could not communicate with ClearCore"
     finally:    
-        return render_template('axisTest.html', msg = msg)
+        return render_template('axisTest.html', msg = msg, motorChar = motorChar)
+@app.route('/stopTest')
+def stopTest():
+    try:
+        ser = serial.Serial()
+        #using the com port defined by the user
+        ser.port = session['COM']
+        #unsure of the baud rate of the clearcore serial port, assuming 19200 for now
+        ser.baudrate = 19200
+        ser.write(unicode('0'))
+        msg = "Stopped test."
+    except:
+        msg = "Error: Could not stop test"
+    finally:
+        return render_template("stopTest.html", msg = msg)
 @app.route('/Info')
 def Info():
     return render_template('Info.html')
