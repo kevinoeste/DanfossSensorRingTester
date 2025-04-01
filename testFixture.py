@@ -5,7 +5,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField 
 from wtforms.validators import DataRequired, Optional
 
-import array, serial,time, threading
+import array, serial, time, threading
 import subprocess 
 import webview
 import sqlite3 as sql
@@ -55,7 +55,7 @@ class MyForm(FlaskForm):
 
 #used for the x, y and z axis motor tests
 class TestForm(FlaskForm):
-    Axis = StringField('Enter x, y or z:', validators =[DataRequired(), Length(1, 1)])
+    Axis = StringField('Enter x, y or z:', validators =[DataRequired()])
     submit = SubmitField('Submit')
 
 #Used to create form to search database.
@@ -133,27 +133,37 @@ def ValueTest(XA,YA,ZA):
 def index():
     return render_template('index.html')
 
-@app.route('axisTestSelect', methods=['POST', 'GET'])
+
+
+
+@app.route('/axisTestSelect', methods=['POST', 'GET'])
 def axisTestSelect():
-    return render_template('axisTestSelect.html', msg = msg)
-@app.route('axisTest')
-def axisTest():
-    try:
-        form = TestForm()
-        if form.validate_on_sumbit():
+    #try:
+    form = TestForm()
+    # Reads ComPort value from text file
+    #with open('ComPort.txt', 'r') as file:
+        #ComPort = file.read()
+    ComPort = "COM6"
+    if form.validate_on_submit():
+        try:
             motorChar = form.Axis.data
             session['MC'] = motorChar
-            ser = serial.Serial()
-            #using the com port defined by the user
-            ser.port = session['COM']
-            #unsure of the baud rate of the clearcore serial port, assuming 19200 for now
-            ser.baudrate = 19200
-            ser.write(unicode(motorChar))
+            ser = serial.Serial(ComPort, 9600, timeout=1)
+            time.sleep(2)  # Wait for serial connection to initialize
+            print("Connected")
+            ser.write(bytearray(motorChar, 'ascii'))
             msg = "Sent character to clearCore"
-    except:
-        msg = "Error: Could not communicate with ClearCore"
-    finally:    
-        return render_template('axisTest.html', msg = msg, motorChar = motorChar)
+        except serial.SerialException as e:
+            print(f"Error opening serial port: {e}")
+            ser = None
+            error_type = "Comport"
+            error_message = "Could not connect to Comport: " + ComPort
+            return render_template('Error.html', error_type=error_type, error_message=error_message)
+        return render_template("axisTest.html", motorChar=motorChar, msg=msg)
+
+    #except:
+        #msg = "Error: Could not communicate with ClearCore"
+    return render_template('axisTestSelect.html', form=form)
 @app.route('/stopTest')
 def stopTest():
     try:
@@ -162,7 +172,7 @@ def stopTest():
         ser.port = session['COM']
         #unsure of the baud rate of the clearcore serial port, assuming 19200 for now
         ser.baudrate = 19200
-        ser.write(unicode('0'))
+        ser.write(bytearray('0', 'ascii'))
         msg = "Stopped test."
     except:
         msg = "Error: Could not stop test"
