@@ -149,10 +149,13 @@ def axisTestSelect():
             motorChar = form.Axis.data
             session['MC'] = motorChar
             ser = serial.Serial(ComPort, 9600, timeout=1)
+            session['comConnect'] = ser
             time.sleep(2)  # Wait for serial connection to initialize
             print("Connected")
             ser.write(bytearray(motorChar, 'ascii'))
             msg = "Sent character to clearCore"
+            #not closing the communication until user stops the test
+            #ser.close()
         except serial.SerialException as e:
             print(f"Error opening serial port: {e}")
             ser = None
@@ -164,20 +167,17 @@ def axisTestSelect():
     #except:
         #msg = "Error: Could not communicate with ClearCore"
     return render_template('axisTestSelect.html', form=form)
-@app.route('/stopTest')
+@app.route('/stopMotorTest')
 def stopTest():
     try:
-        ser = serial.Serial()
-        #using the com port defined by the user
-        ser.port = session['COM']
-        #unsure of the baud rate of the clearcore serial port, assuming 19200 for now
-        ser.baudrate = 19200
+        ser = session['comConnect']
         ser.write(bytearray('0', 'ascii'))
+        ser.close()
         msg = "Stopped test."
     except:
         msg = "Error: Could not stop test"
     finally:
-        return render_template("stopTest.html", msg = msg)
+        return render_template("index.html")
 @app.route('/Info')
 def Info():
     return render_template('Info.html')
