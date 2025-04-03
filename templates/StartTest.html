@@ -12,14 +12,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
     </head>
     <body>
 
-        <h1>Start Test</h1>
+        <h1>Sensor Ring Test Program</h1>
         <h2>        
             <div class="topnav">
             <a href="/">Home</a>
             <a class="active" href="/Start">Start Test</a>
             <a href="/data">View Data</a>
             <a href="/Edit">Edit Database</a>
-            <a href="#about">Set/Reset Database</a>
+            <a href="/Info">Info</a>
           </div> </h2>
 
         <H3>
@@ -37,7 +37,26 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                 {% endif %}
                 {{ form.submit() }}
             </form>
-            
+            <br>
+            <br>
+            <div class="hdr"> Change COM Port</div>    
+            <br>
+            <form method="POST">
+                {{ Comform.hidden_tag() }}
+                {{ Comform.COM.label }} {{ Comform.COM() }}
+                {% if Comform.COM.errors %}
+                    <ul>
+                        {% for error in Comform.Com.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                {{ Comform.submit() }}
+            </form>
+
+            <div class="smalltext">
+                Use format "COM#"
+            </div>
 
         </H3> 
     </body>

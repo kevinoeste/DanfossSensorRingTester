@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this template
+-->
+<html>
+    <head>
+        <title>Start Test</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    </head>
+    <body>
+
+        <h1>Sensor Ring Test Program</h1>
+        <h2>        
+            <div class="topnav">
+            <a href="/">Home</a>
+            <a class="active" href="/Start">Start Test</a>
+            <a href="/data">View Data</a>
+            <a href="/Edit">Edit Database</a>
+            <a href="/Info">Info</a>
+          </div> </h2>
+
+        <H3>
+            
+            <div class="hdr">{{motorChar}} axis motors test stopped</div> <br>
+            <a href ="/">Go to Home</a>
+
+        </H3> 
+    </body>
+</html>

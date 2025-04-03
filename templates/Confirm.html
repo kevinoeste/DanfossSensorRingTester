@@ -12,7 +12,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
     </head>
     <body>
 
-        <h1>Start Test</h1>
+        <h1>Sensor Ring Test Program</h1>
         <h2>        
             <div class="topnav">
             <a href="/">Home</a>
@@ -23,22 +23,20 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
           </div> </h2>
 
         <H3>
-            <script>
-                url = "/Testing";
-                
-                // Simulate an HTTP redirect:
-                setTimeout(function() { // timer
-                window.location.replace(url);
-                }, 1); // 10000 ms = 10 seconds
-                </script>
+            
+            <div class="VD">Serial # Entered: {{ SerialNum }}  </div> <br>
+            <br>
+            <div class="a">
+                If serial number is correct press    <roundG><a href ="/DoTest" style = "text-decoration: none; color:rgb(0, 0, 0);">Start Test</a> </roundG>
+            </div>
+             
+            <br><br><br>
 
-
-           <bigf>Testing...</bigf><br><br>
-        <round><a href="/Start"style="color: #FFFFFF; text-decoration: none;">Cancel Test</a> </round>
-           
-
-        
-	
+            <div class="a">
+                If serial number is incorrect press    <round><a href ="/Start" style = "text-decoration: none; color:white;">Return</a> </round>
+            </div>
+            <br>
+            <br>
 
         </H3> 
     </body>
