@@ -3,14 +3,22 @@ from flask import Flask, render_template, request, session, Response
 from flask_sqlalchemy import SQLAlchemy 
 from flask_wtf import FlaskForm 
 from wtforms import StringField, SubmitField 
-from wtforms.validators import DataRequired
+from wtforms.validators import DataRequired, Optional
 
-import array, serial,time, threading
+import array, serial, time, threading
 import subprocess 
 import webview
 import sqlite3 as sql
 import random
 import os
+
+#To do:
+#1: Format start test page better
+#2: Fix edit database-works now but needs error correcting
+#3: Finish adding info to home screen
+#4: Add error routing if serial port cant be reached
+#5: Add info to Info page(info on clearcore, how test is ran, pass fail parameters, etc)
+#6: Check html navigation bar/headers to make sure all are the same
 
 
 app = Flask(__name__)
@@ -43,7 +51,12 @@ class SenData(db.Model):
 #Used to create form for serial number entry.
 class MyForm(FlaskForm):
     SerialNum = StringField('SN:', validators=[DataRequired()])
-    submit = SubmitField('Start Test')
+    submit = SubmitField('Submit')
+
+#used for the x, y and z axis motor tests
+class TestForm(FlaskForm):
+    Axis = StringField('Enter x, y or z:', validators =[DataRequired()])
+    submit = SubmitField('Submit')
 
 #Used to create form to search database.
 class MySearch(FlaskForm):
@@ -66,13 +79,21 @@ class ManualEntry(FlaskForm):
 class ManualEntryEdit(FlaskForm):
     TestNum = StringField('Test Number:', validators=[DataRequired()])
     SerialNum = StringField('SN:')
-    FXP = StringField('FXP:')
-    FXN = StringField('FXN:')
-    FYP = StringField('FYP:')
-    FYN = StringField('FYN:')
-    AXP = StringField('AXP:')
-    AXN = StringField('AXN:')
+    FXP = StringField('FXP:', validators=[Optional()])
+    FXN = StringField('FXN:', validators=[Optional()])
+    FYP = StringField('FYP:', validators=[Optional()])
+    FYN = StringField('FYN:', validators=[Optional()])
+    AXP = StringField('AXP:', validators=[Optional()])
+    AXN = StringField('AXN:', validators=[Optional()])
     submit = SubmitField('Submit Data')
+
+#Used to allow user to change COM Port
+class ComPortEdit(FlaskForm):
+    COM = StringField('COM Port:', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+class StopTest(FlaskForm):
+    submit = SubmitField('Stop Test')
     
 def __repr__(self):
     return f'<SenData  {self.TestN}>'
@@ -82,29 +103,29 @@ with app.app_context():
 
 
 #ValueTest checks each sensor value reading and checks if they fall between the spec range
-def ValueTest(FXP,FXN,FYP,FYN,AXP,AXN):
+def ValueTest(XA,YA,ZA):
     #Converts float values to integers to allow comparison.
-    TFXP = int(FXP*1000)
-    TFXN = int(FXN*1000)
-    TFYP = int(FYP*1000)
-    TFYN = int(FYN*1000)
-    TAXP = int(AXP*1000)
-    TAXN = int(AXN*1000)
+    TFXP = int(XA[1]*1000)
+    TFXN = int(XA[2]*1000)
+    TFYP = int(YA[3]*1000)
+    TFYN = int(YA[4]*1000)
+    TAXP = int(ZA[5]*1000)
+    TAXN = int(ZA[6]*1000)
 
     #Checks each sensor value to make sure its within range.
     #If its in the range 1 will be added to TestSum.
     TestSum=0
-    if TFXP > 1500 and TFXP < 1800:
+    if TFXP > 1000 and TFXP < 1150:
         TestSum +=1
-    if TFXN > 1500 and TFXN < 1800:
+    if TFXN > 3000 and TFXN < 3150:
         TestSum +=1
-    if TFYP > 1500 and TFYP < 1800:
+    if TFYP > 1000 and TFYP < 1150:
         TestSum +=1
-    if TFYN > 1500 and TFYN < 1800:
+    if TFYN > 3000 and TFYN < 3150:
         TestSum +=1
-    if TAXP > 1500 and TAXP < 1800:
+    if TAXP > 1000 and TAXP < 1150:
         TestSum +=1
-    if TAXN > 1500 and TAXN < 1800:
+    if TAXN > 3000 and TAXN < 3150:
         TestSum +=1
 
     return TestSum
@@ -114,6 +135,85 @@ def ValueTest(FXP,FXN,FYP,FYN,AXP,AXN):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+
+
+@app.route('/axisTestSelect', methods=['POST', 'GET'])
+def axisTestSelect():
+
+    form = TestForm()
+    if form.validate_on_submit():
+        motorChar = form.Axis.data
+        session['MC'] = motorChar
+        return render_template("axisTest.html", motorChar=motorChar)
+        
+    
+    return render_template('axisTestSelect.html', form=form)
+
+@app.route('/TestingAxis')
+def TestingAxis():
+    ComPort = "COM3"
+
+    # Reads ComPort value from text file
+    with open('ComPort.txt', 'r') as file:
+        ComPort = file.read()
+
+    motorChar = session['MC']
+    try:
+        ser = serial.Serial(ComPort, 9600, timeout=1)
+        time.sleep(2)  # Wait for serial connection to initialize
+        print("Connected")
+            
+    except serial.SerialException as e:
+        print(f"Error opening serial port: {e}")
+        ser = None
+        error_type = "Comport"
+        error_message = "Could not connect to Comport: " + ComPort
+        return render_template('Error.html', error_type=error_type, error_message=error_message)
+        
+    TestRun='1'    
+    while(TestRun == '1'):
+        ser.write(motorChar.encode())
+
+    #Form: 
+    #Use form to stop test and close serial port
+    form = StopTest()
+    if form.validate_on_submit():
+        TestRun = '0'
+        ser.write(TestRun.encode())
+        ser.close()
+        return render_template("Index.html", motorChar=motorChar)
+
+    
+    return render_template("axisTest.html", motorChar=motorChar)
+
+    
+@app.route('/stopMotorTest')
+def stopTest():
+    ComPort="COM3"
+
+    try:
+        ser = serial.Serial(ComPort, 9600, timeout=1)
+        time.sleep(2)
+        msg = "Stopped test."
+    except serial.SerialException as e:
+        print(f"Error opening serial port: {e}")
+        ser = None
+        error_type = "Comport"
+        error_message = "Could not connect to Comport: " + ComPort
+        return render_template('Error.html', error_type=error_type, error_message=error_message)
+    
+    motorChar='0'
+    ser.write(motorChar.encode())
+    ser.close()
+
+    return render_template("index.html")
+
+
+@app.route('/Info')
+def Info():
+    return render_template('Info.html')
 
 #Page that displays database data.
 @app.route("/data", methods=['GET', 'POST'])
@@ -127,7 +227,7 @@ def View():
     if form.validate_on_submit():
 
         SerialNum = form.SerialNum.data
-        results = SenData.query.filter(SenData.id == SerialNum).all()
+        results = SenData.query.filter(SenData.id == SerialNum).order_by(SenData.TestN.desc()).all()
         return render_template('SearchResults.html',SerialNum=SerialNum,results=results)
     
     return render_template('ViewData.html', AllData=AllData,form=form)
@@ -142,9 +242,26 @@ def Test():
         SerialNum = form.SerialNum.data
         session['SN'] = SerialNum
        
-        return render_template('Testing.html',SerialNum=SerialNum)
+        return render_template('Confirm.html',SerialNum=SerialNum)
     
-    return render_template('StartTest.html',form=form)
+    #Uses form to get Com Port value from user.
+    Comform = ComPortEdit()
+    if Comform.validate_on_submit():
+        Com = Comform.COM.data
+        session['COM'] = Com
+       
+        # Stores Com value in text file.
+        with open("ComPort.txt", "w") as file:
+            file.write(Com)
+
+        return render_template('ComConfirm.html',Com=Com)
+    
+    return render_template('StartTest.html',form=form,Comform=Comform)
+
+@app.route("/Edit", methods=['GET', 'POST'])
+def Edit():
+
+    return render_template('Edit.html')
 
 #Work in progress-Edits values in database
 @app.route("/EditVal", methods=['GET', 'POST'])
@@ -153,29 +270,50 @@ def EditVal():
     form = ManualEntryEdit()
     if form.validate_on_submit():
 
+        TN = int(form.TestNum.data)
+        row_to_update = SenData.query.get(TN)
+
         #Storing data from form
         SerialNum = form.SerialNum.data
-        FXP1= form.FXP.data
-        FXN1 = form.FXN.data
-        FYP1 = form.FYP.data
-        FYN1 = form.FYN.data
-        AXP1 = form.AXP.data
-        AXN1 = form.AXN.data
+        if form.FXP.data == "":
+            FXP = float(row_to_update.FXP)
+        else:
+            FXP1= form.FXP.data
+            FXP = float(FXP1)
 
-        #Converts strings to floats
-        FXP = float(FXP1)
-        FXN = float(FXN1)
-        FYP = float(FYP1)
-        FYN = float(FYN1)
-        AXP = float(AXP1)
-        AXN = float(AXN1)
+        if form.FXN.data == "":
+            FXN = float(row_to_update.FXN)
+        else:
+            FXN1 = form.FXN.data
+            FXN = float(FXN1)
+
+        if form.FYP.data == "":
+            FYP = float(row_to_update.FYP)
+        else:
+            FYP1 = form.FYP.data
+            FYP = float(FYP1)
+
+        if form.FYN.data == "":
+            FYN = float(row_to_update.FYN)
+        else:
+            FYN1 = form.FYN.data
+            FYN = float(FYN1)
+
+        if form.AXP.data == "":
+            AXP = float(row_to_update.AXP)
+        else:
+            AXP1 = form.AXP.data
+            AXP = float(AXP1)
+        
+        if form.FYP.data == "":
+            AXN1 = float(row_to_update.AXN)
+        else:
+            AXN1 = form.AXN.data
+            AXN = float(AXN1)             
 
         #Stores current date and time and formats it.
         FTime = datetime.now()
         Time = FTime.strftime("%m-%d-%Y %H:%M:%S")
-
-        TN = int(form.TestNum.data)
-        row_to_update = SenData.query.get(TN)
         
         if row_to_update:
             row_to_update.FXP = FXP
@@ -196,8 +334,8 @@ def EditVal():
     return render_template('EditDatabase.html', form=form)
 
 #Manual entry database values
-@app.route("/Edit", methods=['GET', 'POST'])
-def Edit():
+@app.route("/AddVal", methods=['GET', 'POST'])
+def AddEdit():
 
     form = ManualEntry()
     if form.validate_on_submit():
@@ -279,7 +417,10 @@ def Testing():
     YA = array.array('d',[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     ZA = array.array('d',[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
-    ComPort = 'COM6'
+    # Reads ComPort value from text file
+    #with open('ComPort.txt', 'r') as file:
+        #ComPort = file.read()
+    ComPort = 'COM3'
     #Attempts to connect to serial port
     try:
         ser = serial.Serial(ComPort, 9600, timeout=1)  
@@ -289,12 +430,17 @@ def Testing():
     except serial.SerialException as e:
         print(f"Error opening serial port: {e}")
         ser = None
+        error_type = "Comport"
+        error_message = "Could not connect to Comport: " + ComPort
+        return render_template('Error.html',error_type=error_type,error_message=error_message)
 
+
+    TestIO = '1'
     #Sends commands to start test to clearcore
     ser.write(TestIO.encode())
 
     #Initialize variables for test
-    TestIO = '1'
+    
     newdata = None
     latest_data = None
     count=0
@@ -333,38 +479,14 @@ def Testing():
     #Closes serial port  
     ser.close()
 
-    #Creates random values ranging between the low and high values.
-    low=1.4
-    high=2
+    #Storing test data
+    FXP = XA[1]
+    FXN = XA[2]
+    FYP = YA[3]
+    FYN = YA[4]
+    AXP = ZA[5]
+    AXN = ZA[6]
 
-    FXP = round(random.uniform(low, high), 2)
-    FXN = round(random.uniform(low, high), 2)
-    FYP = round(random.uniform(low, high), 2)
-    FYN = round(random.uniform(low, high), 2)
-    AXP = round(random.uniform(low, high), 2)
-    AXN = round(random.uniform(low, high), 2)
-    '''
-    result = subprocess.run(['./RunTest'], capture_output=True, text=True)
-
-    if result.returncode != 0:
-        
-        return render_template('index.html')
-    else:
-        # Parse the output
-        output_lines = result.stdout.splitlines()
-        x = array.array('d',[0.0,0.0,0.0,0.0,0.0,0.0])
-        y=0
-        for line in output_lines:
-          x[y]= float(line)
-          y+=1
-          
-    FXP = x[0]
-    FXN = x[1]
-    FYP = x[2]
-    FYN = x[3]
-    AXP = x[4]
-    AXN = x[5]
-    '''
     #Stores current date and time and formats it.
     FTime = datetime.now()
     Time = FTime.strftime("%m-%d-%Y %H:%M:%S")
@@ -381,7 +503,7 @@ def Testing():
         TestNum= int(TestNum1.TestN) +1
     
     #Decides if test passed or failed based on using the ValueTest function. TV represents how many sensors passed.
-    TV=ValueTest(FXP,FXN,FYP,FYN,AXP,AXN)
+    TV=ValueTest(XA,YA,ZA)
     if TV==6:
         #data sends data to be displayed on the Passed.html page
         data = [{'SN': SN, 'Time': Time, 'FXP': FXP, 'FXN': FXN, 'FYP': FYP, 'FYN': FYN, 'AXP': AXP, 'AXN': AXN,'pf':"Pass"}]
