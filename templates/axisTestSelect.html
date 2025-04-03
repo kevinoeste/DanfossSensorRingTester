@@ -25,7 +25,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
         <H3>
             
             <div class="hdr"> Enter X, Y or Z to test motors</div> <br>
-            <form method="POST">
+            <form action ="/TestingAxis" method="POST">
                 {{ form.hidden_tag() }}
                 {{ form.Axis.label }} {{ form.Axis() }}
                 {% if form.Axis.errors %}

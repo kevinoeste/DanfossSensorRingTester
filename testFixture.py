@@ -101,6 +101,14 @@ def __repr__(self):
 with app.app_context():
     db.create_all()
 
+#function for opening serial port
+def openSerial():
+    with open('ComPort.txt', 'r') as file:
+        ComPort = file.read()
+    ser = serial.Serial(ComPort, 9600, timeout=1)
+    time.sleep(2)  # Wait for serial connection to initialize
+    print("Connected")
+    return ser
 
 #ValueTest checks each sensor value reading and checks if they fall between the spec range
 def ValueTest(XA,YA,ZA):
@@ -141,17 +149,14 @@ def index():
 
 @app.route('/axisTestSelect', methods=['POST', 'GET'])
 def axisTestSelect():
-
     form = TestForm()
     if form.validate_on_submit():
         motorChar = form.Axis.data
         session['MC'] = motorChar
-        return render_template("axisTest.html", motorChar=motorChar)
-        
-    
+        #return render_template("axisTest.html", motorChar=motorChar, form = StopTest())
     return render_template('axisTestSelect.html', form=form)
 
-@app.route('/TestingAxis')
+@app.route('/TestingAxis', methods = ['POST', 'GET'])
 def TestingAxis():
     ComPort = "COM3"
 
@@ -172,21 +177,22 @@ def TestingAxis():
         error_message = "Could not connect to Comport: " + ComPort
         return render_template('Error.html', error_type=error_type, error_message=error_message)
         
-    TestRun='1'    
-    while(TestRun == '1'):
-        ser.write(motorChar.encode())
-
-    #Form: 
-    #Use form to stop test and close serial port
+    #TestRun='1'
+    #while(TestRun == '1'):
+    ser.write(motorChar.encode())
+    ser.close()
+    # Form:
+    # Use form to stop test and close serial port
     form = StopTest()
     if form.validate_on_submit():
+        print("testing")
+        ser = openSerial()
         TestRun = '0'
         ser.write(TestRun.encode())
         ser.close()
         return render_template("Index.html", motorChar=motorChar)
 
-    
-    return render_template("axisTest.html", motorChar=motorChar)
+    return render_template("axisTest.html", motorChar=motorChar, form = StopTest())
 
     
 @app.route('/stopMotorTest')
@@ -203,7 +209,7 @@ def stopTest():
         error_type = "Comport"
         error_message = "Could not connect to Comport: " + ComPort
         return render_template('Error.html', error_type=error_type, error_message=error_message)
-    
+
     motorChar='0'
     ser.write(motorChar.encode())
     ser.close()
