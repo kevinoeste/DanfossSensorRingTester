@@ -37,8 +37,8 @@ h1{
   background-color: #333;
   line-height: 90px;
   border-top:3px solid black;
-  border-left:3px solid black;
-  border-right:3px solid black;
+  border-left:1px solid black;
+  border-right:1px solid black;
 }
 span {
   display: inline-block;
@@ -68,6 +68,13 @@ h4
   margin-left: auto;
   margin-right: auto;
 }
+h5{
+  width: fit-content;
+  height: 500px;
+  background-color: #D3D3D3;
+  margin-left: auto;
+  margin-right: auto;
+}
 
 header{
   background-color: #333;
@@ -82,6 +89,13 @@ body{
 div.a {
   text-indent: 50px;
   font-size: 22px;
+}
+div.column
+{
+  column-count: 2;
+  width:100%;
+  text-align: center;
+  height: 100px;;
 }
 div.PHdr
 {
@@ -99,6 +113,10 @@ div.VD{
   border-bottom: 3px solid #000000;
   width: auto;
   
+}
+div.smalltext{
+  font-size: 15px;
+  text-indent: 110px;
 }
 div.scroll
 {
@@ -142,6 +160,19 @@ round
   text-align: center;
   border-radius: 25px;
   background: #FF0000;
+  border: 2px solid #000000;
+  padding: 10px;
+  width: 200px;
+  height: 35px;
+  text-decoration: none;
+  
+}
+
+roundG
+{
+  text-align: center;
+  border-radius: 25px;
+  background: #14cb00;
   border: 2px solid #000000;
   padding: 10px;
   width: 200px;
