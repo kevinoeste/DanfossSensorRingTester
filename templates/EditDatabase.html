@@ -30,7 +30,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
 
         <H3>
             
-            Type in Serial Number Below<br><br>
+            Type Values Below - When Editing, Test Number Must Match Existing Test<br><br>
             <form method="POST">
                 {{ form.hidden_tag() }}
                 {{ form.TestNum.label }} {{ form.TestNum }} <br>
@@ -43,16 +43,20 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                 {{ form.AXN.label }} {{ form.AXN() }}<br>
                 
 
-                {% if form.SerialNum.errors %}
-                    <ul>
-                        {% for error in form.SerialNum.errors %}
-                            <li>{{ error }}</li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
-                {{ form.submit() }}
-            </form>
-            
+            {% if form.errors %}
+                <ul>
+                {% for field, errors in form.errors.items() %}
+                    {% for error in errors %}
+                        <li>{{ field }}: {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+                </ul>
+            {% endif %}
+            {{ form.submit() }}
+        </form>
+        {% if message %}
+            <p style="color: red;">{{ message }}</p>
+        {% endif %}
 
         </H3> 
     </body>

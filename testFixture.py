@@ -132,7 +132,7 @@ class ManualEntry(FlaskForm):
 #Used to edit a database value.
 class ManualEntryEdit(FlaskForm):
     TestNum = StringField('Test Number:', validators=[DataRequired()])
-    SerialNum = StringField('SN:')
+    SerialNum = StringField('SN:' , validators=[Optional()])
     FXP = StringField('FXP:', validators=[Optional()])
     FXN = StringField('FXN:', validators=[Optional()])
     FYP = StringField('FYP:', validators=[Optional()])
@@ -343,67 +343,40 @@ def EditVal():
         TN = int(form.TestNum.data)
         row_to_update = SenData.query.get(TN)
 
-        #Storing data from form
-        SerialNum = form.SerialNum.data
-        if form.FXP.data == "":
-            FXP = float(row_to_update.FXP)
-        else:
-            FXP1= form.FXP.data
-            FXP = float(FXP1)
-
-        if form.FXN.data == "":
-            FXN = float(row_to_update.FXN)
-        else:
-            FXN1 = form.FXN.data
-            FXN = float(FXN1)
-
-        if form.FYP.data == "":
-            FYP = float(row_to_update.FYP)
-        else:
-            FYP1 = form.FYP.data
-            FYP = float(FYP1)
-
-        if form.FYN.data == "":
-            FYN = float(row_to_update.FYN)
-        else:
-            FYN1 = form.FYN.data
-            FYN = float(FYN1)
-
-        if form.AXP.data == "":
-            AXP = float(row_to_update.AXP)
-        else:
-            AXP1 = form.AXP.data
-            AXP = float(AXP1)
-        
-        if form.FYP.data == "":
-            AXN1 = float(row_to_update.AXN)
-        else:
-            AXN1 = form.AXN.data
-            AXN = float(AXN1)             
-
-        #Stores current date and time and formats it.
-        FTime = datetime.now()
-        Time = FTime.strftime("%m-%d-%Y %H:%M:%S")
-        
         if row_to_update:
+            # Storing data from form, using existing values if fields are empty
+            SerialNum = form.SerialNum.data or row_to_update.id
+            FXP = float(form.FXP.data) if form.FXP.data else float(row_to_update.FXP)
+            FXN = float(form.FXN.data) if form.FXN.data else float(row_to_update.FXN)
+            FYP = float(form.FYP.data) if form.FYP.data else float(row_to_update.FYP)
+            FYN = float(form.FYN.data) if form.FYN.data else float(row_to_update.FYN)
+            AXP = float(form.AXP.data) if form.AXP.data else float(row_to_update.AXP)
+            AXN = float(form.AXN.data) if form.AXN.data else float(row_to_update.AXN)
+            # Update the row
+            row_to_update.id = SerialNum
             row_to_update.FXP = FXP
             row_to_update.FXN = FXN
             row_to_update.FYP = FYP
             row_to_update.FYN = FYN
             row_to_update.AXP = AXP
-            row_to_update.AXN = FXN
+            row_to_update.AXN = AXN
+
+            # Update timestamp
+            FTime = datetime.now()
+            Time = FTime.strftime("%m-%d-%Y %H:%M:%S")
+            row_to_update.TimeS = Time
+
+
             db.session.commit()
+            # Prepare data for display
+            datas = [{'TestN': row_to_update.TestN,'SN': SerialNum, 'Time': Time, 'FXP': FXP, 'FXN': FXN, 'FYP': FYP, 'FYN': FYN, 'AXP': AXP,
+                      'AXN': AXN, 'pf': row_to_update.pf}]
+            return render_template('EditedData.html', data=datas)
         else:
-            print("Not found.")
-
-        datas = [{'SN': SerialNum, 'Time': Time, 'FXP': FXP, 'FXN': FXN, 'FYP': FYP, 'FYN': FYN, 'AXP': AXP, 'AXN': AXN,'pf':"Pass"}]
-
-
-        return render_template('Passed.html',data=datas)
+            return render_template('EditDatabase.html', form=form,
+                                   message="Test Number not found. Use Add Value to create a new entry.")
 
     return render_template('EditDatabase.html', form=form)
-
-#Manual entry database values
 @app.route("/AddVal", methods=['GET', 'POST'])
 @login_required
 def AddEdit():
