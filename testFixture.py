@@ -1,21 +1,18 @@
+import array
+import os
+import threading
+import time
 from datetime import datetime, timedelta
 
-from flask import Flask, render_template, request, session, Response,redirect,url_for,flash
-from flask_sqlalchemy import SQLAlchemy 
+from serial import Serial, SerialException
+from flask import Flask, render_template, session, redirect, url_for, flash
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from werkzeug.security import generate_password_hash, check_password_hash
 from wtforms import StringField, SubmitField
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from wtforms.fields.simple import PasswordField
-from wtforms.validators import DataRequired, Optional,Length,EqualTo
-
-
-import array, serial,time, threading
-import subprocess 
-import webview
-import sqlite3 as sql
-import random
-import os
+from wtforms.validators import DataRequired, Optional, Length, EqualTo
 
 #To do:
 #1: Format start test page better
@@ -492,17 +489,20 @@ def Testing():
     YA = array.array('d',[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     ZA = array.array('d',[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
-    # Reads ComPort value from text file
-    #with open('ComPort.txt', 'r') as file:
-        #ComPort = file.read()
-    ComPort = 'COM6'
+    # Reads ComPort value from text file if empty or no file sets to COM6
+    try:
+        with open('ComPort.txt', 'r') as file:
+            ComPort = file.read().strip()
+        ComPort = ComPort if ComPort else 'COM6'
+    except FileNotFoundError:
+        ComPort = 'COM6'
     #Attempts to connect to serial port
     try:
-        ser = serial.Serial(ComPort, 9600, timeout=1)  
+        ser = Serial(ComPort, 9600, timeout=1)
         time.sleep(2) # Wait for serial connection to initialize
         print("Connected")
 
-    except serial.SerialException as e:
+    except SerialException as e:
         print(f"Error opening serial port: {e}")
         ser = None
         error_type = "Comport"
