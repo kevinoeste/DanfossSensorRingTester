@@ -86,9 +86,18 @@ class ManualEntryEdit(FlaskForm):
 class ComPortEdit(FlaskForm):
     COM = StringField('COM Port:', validators=[DataRequired()])
     submit = SubmitField('Submit')
+
+class TestChoice(FlaskForm):
+    TC = StringField('Run Axis Test:', validators=[DataRequired()])
+    submit = SubmitField('Submit')
     
 def __repr__(self):
     return f'<SenData  {self.TestN}>'
+
+#used for the x, y and z axis motor tests
+class TestForm(FlaskForm):
+    Axis = StringField('Enter x, y or z:', validators =[DataRequired()])
+    submit = SubmitField('Submit')
 
 with app.app_context():
     db.create_all()
@@ -173,7 +182,16 @@ def Test():
 
         return render_template('ComConfirm.html',Com=Com)
     
-    return render_template('StartTest.html',form=form,Comform=Comform)
+    form1 = TestForm()
+    if form1.validate_on_submit():
+        motorChar = form1.Axis.data
+        session['MC'] = motorChar
+        print('MC:' + motorChar)
+        #return render_template("axisTest.html", motorChar=motorChar, form = StopTest())
+        return render_template('TestingAxis.html', motorChar = motorChar)
+    
+    
+    return render_template('StartTest.html',form=form,Comform=Comform,form1=form1)
 
 @app.route("/Edit", methods=['GET', 'POST'])
 def Edit():
@@ -312,10 +330,72 @@ def AddEdit():
     return render_template('EditDatabase.html', form=form)
 
 
+@app.route('/TestingAxis', methods = ['POST', 'GET'])
+def TestingAxis():
+
+    # Reads ComPort value from text file
+    with open('ComPort.txt', 'r') as file:
+        ComPort = file.read()
+    
+    #Attempts to connect to serial port
+    try:
+        ser = serial.Serial(ComPort, 9600, timeout=1)  
+        time.sleep(2) # Wait for serial connection to initialize
+        print("Connected")
+
+    except serial.SerialException as e:
+        print(f"Error opening serial port: {e}")
+        ser = None
+        error_type = "Comport"
+        error_message = "Could not connect to Comport: " + ComPort
+        return render_template('Error.html',error_type=error_type,error_message=error_message)
+
+    MC = session.get('MC')
+    print(MC)
+
+    TestIO = '1'
+    #Sends commands to start test to clearcore
+    ser.write(MC.encode())
+
+    #Initialize variables for test
+    newdata = None
+    latest_data = None
+
+    #Loops while test is running to recieve data from serial port.
+    while TestIO=='1':
+        if ser.in_waiting > 0:
+            try:
+                line = ser.readline().decode('utf-8').strip()
+                with data_lock:
+                    latest_data = line
+                    
+            except Exception as e:
+                print(f"Error reading serial data: {e}")
+            
+            #Updates newdata if data is new
+            if latest_data != newdata:
+                newdata = latest_data
+                #Stores the voltage readings from each axis.
+                if newdata !='0':
+                    print(newdata)
+
+            #Clearcore sends 0 at end of test. Once recieved the while loop ends.
+            if latest_data =='0':
+                TestIO='0'
+                
+        #Checks if new data available from serial port every 0.5 seconds        
+        time.sleep(0.1)
+
+    #Closes serial port  
+    ser.close()
+
+    return render_template('index.html')
+
+
 @app.route("/DoTest")
 def DoTest():
 
-    return render_template('Testing.html',)
+    return render_template('Testing.html')
 
 
 @app.route("/Testing", methods=['GET','POST'])
@@ -335,9 +415,9 @@ def Testing():
     ZA = array.array('d',[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
     # Reads ComPort value from text file
-    #with open('ComPort.txt', 'r') as file:
-        #ComPort = file.read()
-    ComPort = 'COM6'
+    with open('ComPort.txt', 'r') as file:
+        ComPort = file.read()
+    
     #Attempts to connect to serial port
     try:
         ser = serial.Serial(ComPort, 9600, timeout=1)  
