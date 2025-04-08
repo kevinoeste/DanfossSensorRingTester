@@ -8,6 +8,13 @@
         <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     </head>
     <body>
+        <div class="logout-bar">
+        {% if current_user.is_authenticated %}
+            <a href="/logout">Logout ({{ current_user.username }})</a>
+        {% else %}
+            <a href="/login">Login</a>
+        {% endif %}
+        </div>
         <h1>Sensor Ring Test Program</h1>
 
         <h2>
@@ -29,6 +36,7 @@
                         <thead>
                             <tr>
                                 <th>Test #</th>
+                                <th>User</th>
                                 <th>Serial #</th>
                                 <th>Timestamp</th>
                                 <th>AX+ (V)</th>
@@ -54,6 +62,7 @@
                 {% for item in results %}
                 <tr>
                     <td>{{ item.TestN }}</td>
+                    <td>{{ search_logs.get(item.id, 'Unknown') }}</td>
                     <td>{{ item.id }}</td>
                     <td>{{ item.TimeS }}</td>
                     <td>{{ item.AXP }}</td>
