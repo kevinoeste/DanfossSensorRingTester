@@ -5,7 +5,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField 
 from wtforms.validators import DataRequired, Optional
 
-import array, serial, time, threading
+import array, serial,time, threading
 import subprocess 
 import webview
 import sqlite3 as sql
@@ -40,22 +40,14 @@ class SenData(db.Model):
     TestN = db.Column(db.Integer, primary_key=True)
     id = db.Column(db.String(10), nullable=False)
     TimeS = db.Column(db.Integer)
-    FXP = db.Column(db.Float)
-    FXN = db.Column(db.Float)
-    FYP = db.Column(db.Float)
-    FYN = db.Column(db.Float)
-    AXP = db.Column(db.Float)
-    AXN = db.Column(db.Float)
+    X = db.Column(db.Float)
+    Y = db.Column(db.Float)
+    Z = db.Column(db.Float)
     pf = db.Column(db.String(10), nullable=False)
 
 #Used to create form for serial number entry.
 class MyForm(FlaskForm):
     SerialNum = StringField('SN:', validators=[DataRequired()])
-    submit = SubmitField('Submit')
-
-#used for the x, y and z axis motor tests
-class TestForm(FlaskForm):
-    Axis = StringField('Enter x, y or z:', validators =[DataRequired()])
     submit = SubmitField('Submit')
 
 #Used to create form to search database.
@@ -92,48 +84,33 @@ class ComPortEdit(FlaskForm):
     COM = StringField('COM Port:', validators=[DataRequired()])
     submit = SubmitField('Submit')
 
-class StopTest(FlaskForm):
-    submit = SubmitField('Stop Test')
+class TestChoice(FlaskForm):
+    TC = StringField('Run Axis Test:', validators=[DataRequired()])
+    submit = SubmitField('Submit')
     
 def __repr__(self):
     return f'<SenData  {self.TestN}>'
 
+#used for the x, y and z axis motor tests
+class TestForm(FlaskForm):
+    Axis = StringField('Enter x, y or z:', validators =[DataRequired()])
+    submit = SubmitField('Submit')
+
 with app.app_context():
     db.create_all()
 
-#function for opening serial port
-def openSerial():
-    with open('ComPort.txt', 'r') as file:
-        ComPort = file.read()
-    ser = serial.Serial(ComPort, 9600, timeout=1)
-    time.sleep(2)  # Wait for serial connection to initialize
-    print("Connected")
-    return ser
 
 #ValueTest checks each sensor value reading and checks if they fall between the spec range
-def ValueTest(XA,YA,ZA):
-    #Converts float values to integers to allow comparison.
-    TFXP = int(XA[1]*1000)
-    TFXN = int(XA[2]*1000)
-    TFYP = int(YA[3]*1000)
-    TFYN = int(YA[4]*1000)
-    TAXP = int(ZA[5]*1000)
-    TAXN = int(ZA[6]*1000)
+def ValueTest(X,Y,Z):
 
     #Checks each sensor value to make sure its within range.
     #If its in the range 1 will be added to TestSum.
     TestSum=0
-    if TFXP > 1000 and TFXP < 1150:
+    if X > 275 and X < 325:
         TestSum +=1
-    if TFXN > 3000 and TFXN < 3150:
+    if Y > 275 and Y < 325:
         TestSum +=1
-    if TFYP > 1000 and TFYP < 1150:
-        TestSum +=1
-    if TFYN > 3000 and TFYN < 3150:
-        TestSum +=1
-    if TAXP > 1000 and TAXP < 1150:
-        TestSum +=1
-    if TAXN > 3000 and TAXN < 3150:
+    if Z > 275 and Z < 325:
         TestSum +=1
 
     return TestSum
@@ -143,79 +120,6 @@ def ValueTest(XA,YA,ZA):
 @app.route('/')
 def index():
     return render_template('index.html')
-
-
-
-
-@app.route('/axisTestSelect', methods=['POST', 'GET'])
-def axisTestSelect():
-    form = TestForm()
-    if form.validate_on_submit():
-        motorChar = form.Axis.data
-        session['MC'] = motorChar
-        #return render_template("axisTest.html", motorChar=motorChar, form = StopTest())
-    return render_template('axisTestSelect.html', form=form)
-
-@app.route('/TestingAxis', methods = ['POST', 'GET'])
-def TestingAxis():
-    ComPort = "COM3"
-
-    # Reads ComPort value from text file
-    with open('ComPort.txt', 'r') as file:
-        ComPort = file.read()
-
-    motorChar = session['MC']
-    try:
-        ser = serial.Serial(ComPort, 9600, timeout=1)
-        time.sleep(2)  # Wait for serial connection to initialize
-        print("Connected")
-            
-    except serial.SerialException as e:
-        print(f"Error opening serial port: {e}")
-        ser = None
-        error_type = "Comport"
-        error_message = "Could not connect to Comport: " + ComPort
-        return render_template('Error.html', error_type=error_type, error_message=error_message)
-        
-    #TestRun='1'
-    #while(TestRun == '1'):
-    ser.write(motorChar.encode())
-    ser.close()
-    # Form:
-    # Use form to stop test and close serial port
-    form = StopTest()
-    if form.validate_on_submit():
-        print("testing")
-        ser = openSerial()
-        TestRun = '0'
-        ser.write(TestRun.encode())
-        ser.close()
-        return render_template("Index.html", motorChar=motorChar)
-
-    return render_template("axisTest.html", motorChar=motorChar, form = StopTest())
-
-    
-@app.route('/stopMotorTest')
-def stopTest():
-    ComPort="COM3"
-
-    try:
-        ser = serial.Serial(ComPort, 9600, timeout=1)
-        time.sleep(2)
-        msg = "Stopped test."
-    except serial.SerialException as e:
-        print(f"Error opening serial port: {e}")
-        ser = None
-        error_type = "Comport"
-        error_message = "Could not connect to Comport: " + ComPort
-        return render_template('Error.html', error_type=error_type, error_message=error_message)
-
-    motorChar='0'
-    ser.write(motorChar.encode())
-    ser.close()
-
-    return render_template("index.html")
-
 
 @app.route('/Info')
 def Info():
@@ -262,7 +166,15 @@ def Test():
 
         return render_template('ComConfirm.html',Com=Com)
     
-    return render_template('StartTest.html',form=form,Comform=Comform)
+    form1 = TestForm()
+    if form.validate_on_submit():
+        motorChar = form1.Axis.data
+        session['MC'] = motorChar
+        #return render_template("axisTest.html", motorChar=motorChar, form = StopTest())
+        return render_template('axisTestSelect.html', motorChar = motorChar)
+    
+    
+    return render_template('StartTest.html',form=form,Comform=Comform,form1=form1)
 
 @app.route("/Edit", methods=['GET', 'POST'])
 def Edit():
@@ -373,15 +285,20 @@ def AddEdit():
             TestNum = 1
         else:
             TestNum= int(TestNum1.TestN) +1
+
+        X = round(abs(FXP-FXN),1) * 1000
+        Y = round(abs(FYP-FYN),1) * 1000
+        Z = round(abs(AXP-AXN),1) * 1000
     
         #Decides if test passed or failed based on using the ValueTest function. TV represents how many sensors passed.
-        TV=ValueTest(FXP,FXN,FYP,FYN,AXP,AXN)
-        if TV==6:
+        TV=ValueTest(X,Y,Z)
+    
+        if TV==3:
             #data sends data to be displayed on the Passed.html page
-            data = [{'SN': SerialNum, 'Time': Time, 'FXP': FXP, 'FXN': FXN, 'FYP': FYP, 'FYN': FYN, 'AXP': AXP, 'AXN': AXN,'pf':"Pass"}]
+            data = [{'SN': SerialNum, 'Time': Time, 'X': X, 'Y': Y, 'Z': Z, 'pf':"Pass"}]
 
             #datas holds values that are then sent and stored in the database
-            datas = SenData(TestN=TestNum, id=SerialNum, TimeS=Time, FXP=FXP, FXN=FXN,FYP=FYP,FYN=FYN,AXP=AXP,AXN=AXN,pf="Pass")
+            datas = SenData(TestN=TestNum, id=SerialNum, TimeS=Time, X=X, Y=Y, Z=Z, pf="Pass")
             db.session.add(datas)
             db.session.commit()
 
@@ -389,16 +306,76 @@ def AddEdit():
     
         else:
             #data sends data to be displayed on the Fail.html page.
-            data = [{'SN': SerialNum, 'Time': Time, 'FXP': FXP, 'FXN': FXN, 'FYP': FYP, 'FYN': FYN, 'AXP': AXP, 'AXN': AXN,'pf':"Fail"}]
+            data = [{'SN': SerialNum, 'Time': Time, 'X': X, 'Y': Y, 'Z': Z, 'pf':"Fail"}]
 
             #datas holds values that are then sent and stored in the database.
-            datas = SenData(TestN=TestNum, id=SerialNum, TimeS=Time, FXP=FXP, FXN=FXN,FYP=FYP,FYN=FYN,AXP=AXP,AXN=AXN,pf="Fail")
+            datas = SenData(TestN=TestNum, id=SerialNum, TimeS=Time, X=X, Y=Y, Z=Z, pf="Fail")
             db.session.add(datas)
             db.session.commit()
 
             return render_template('Fail.html',data=data)
         
     return render_template('EditDatabase.html', form=form)
+
+
+@app.route('/TestingAxis', methods = ['POST', 'GET'])
+def TestingAxis():
+
+    # Reads ComPort value from text file
+    with open('ComPort.txt', 'r') as file:
+        ComPort = file.read()
+    
+    #Attempts to connect to serial port
+    try:
+        ser = serial.Serial(ComPort, 9600, timeout=1)  
+        time.sleep(2) # Wait for serial connection to initialize
+        print("Connected")
+
+    except serial.SerialException as e:
+        print(f"Error opening serial port: {e}")
+        ser = None
+        error_type = "Comport"
+        error_message = "Could not connect to Comport: " + ComPort
+        return render_template('Error.html',error_type=error_type,error_message=error_message)
+
+    motorChar = session['MC']
+    TestIO = '1'
+    #Sends commands to start test to clearcore
+    ser.write(motorChar.encode())
+
+    #Initialize variables for test
+    newdata = None
+    latest_data = None
+
+    #Loops while test is running to recieve data from serial port.
+    while TestIO=='1':
+        if ser.in_waiting > 0:
+            try:
+                line = ser.readline().decode('utf-8').strip()
+                with data_lock:
+                    latest_data = line
+                    
+            except Exception as e:
+                print(f"Error reading serial data: {e}")
+            
+            #Updates newdata if data is new
+            if latest_data != newdata:
+                newdata = latest_data
+                #Stores the voltage readings from each axis.
+                if newdata !='0':
+                    print(newdata)
+
+            #Clearcore sends 0 at end of test. Once recieved the while loop ends.
+            if latest_data =='0':
+                TestIO='0'
+                
+        #Checks if new data available from serial port every 0.5 seconds        
+        time.sleep(0.1)
+
+    #Closes serial port  
+    ser.close()
+
+    return render_template('StartTest.html')
 
 
 @app.route("/DoTest")
@@ -424,9 +401,9 @@ def Testing():
     ZA = array.array('d',[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
     # Reads ComPort value from text file
-    #with open('ComPort.txt', 'r') as file:
-        #ComPort = file.read()
-    ComPort = 'COM3'
+    with open('ComPort.txt', 'r') as file:
+        ComPort = file.read()
+    
     #Attempts to connect to serial port
     try:
         ser = serial.Serial(ComPort, 9600, timeout=1)  
@@ -493,6 +470,10 @@ def Testing():
     AXP = ZA[5]
     AXN = ZA[6]
 
+    X = round(abs(FXP-FXN),1) * 1000
+    Y = round(abs(FYP-FYN),1) * 1000
+    Z = round(abs(AXP-AXN),1) * 1000
+
     #Stores current date and time and formats it.
     FTime = datetime.now()
     Time = FTime.strftime("%m-%d-%Y %H:%M:%S")
@@ -509,23 +490,23 @@ def Testing():
         TestNum= int(TestNum1.TestN) +1
     
     #Decides if test passed or failed based on using the ValueTest function. TV represents how many sensors passed.
-    TV=ValueTest(XA,YA,ZA)
-    if TV==6:
+    TV=ValueTest(X,Y,Z)
+    if TV==3:
         #data sends data to be displayed on the Passed.html page
-        data = [{'SN': SN, 'Time': Time, 'FXP': FXP, 'FXN': FXN, 'FYP': FYP, 'FYN': FYN, 'AXP': AXP, 'AXN': AXN,'pf':"Pass"}]
+        data = [{'SN': SN, 'Time': Time, 'X': X, 'Y': Y, 'Z': Z,'pf':"Pass"}]
 
         #datas holds values that are then sent and stored in the database
-        datas = SenData(TestN=TestNum, id=SN, TimeS=Time, FXP=FXP, FXN=FXN,FYP=FYP,FYN=FYN,AXP=AXP,AXN=AXN,pf="Pass")
+        datas = SenData(TestN=TestNum, id=SN, TimeS=Time, X=X, Y=Y, Z=Z, pf="Pass")
         db.session.add(datas)
         db.session.commit()
 
         return render_template('Passed.html',data=data)
     else:
         #data sends data to be displayed on the Fail.html page.
-        data = [{'SN': SN, 'Time': Time, 'FXP': FXP, 'FXN': FXN, 'FYP': FYP, 'FYN': FYN, 'AXP': AXP, 'AXN': AXN,'pf':"Fail"}]
+        data = [{'SN': SN, 'Time': Time, 'X': X, 'Y': Y, 'Z': Z, 'pf':"Fail"}]
 
         #datas holds values that are then sent and stored in the database.
-        datas = SenData(TestN=TestNum, id=SN, TimeS=Time, FXP=FXP, FXN=FXN,FYP=FYP,FYN=FYN,AXP=AXP,AXN=AXN,pf="Fail")
+        datas = SenData(TestN=TestNum, id=SN, TimeS=Time, X=X, Y=Y, Z=Z, pf="Fail")
         db.session.add(datas)
         db.session.commit()
 
