@@ -57,6 +57,20 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
             <div class="smalltext">
                 Use format "COM#"
             </div>
+            <br>
+            <div class="hdr"> Enter X, Y or Z to test motors</div> <br>
+            <form action ="/TestingAxis" method="POST">
+                {{ form1.hidden_tag() }}
+                {{ form1.Axis.label }} {{ form1.Axis() }}
+                {% if form1.Axis.errors %}
+                    <ul>
+                        {% for error in form1.Axis.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                {{ form1.submit() }}
+            </form>
 
         </H3> 
     </body>

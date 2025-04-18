@@ -12,7 +12,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
     </head>
     <body>
 
-        <h1>Sensor Ring Test Program</h1>
+        <h1>Start Test</h1>
         <h2>        
             <div class="topnav">
             <a href="/">Home</a>
@@ -23,25 +23,22 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
           </div> </h2>
 
         <H3>
-            
-            <div class="hdr"> Enter X, Y or Z to test motors</div> <br>
-            <form action ="/TestingAxis" method="POST">
-                {{ form1.hidden_tag() }}
-                {{ form1.Axis.label }} {{ form1.Axis() }}
-                {% if form1.Axis.errors %}
-                    <ul>
-                        {% for error in form1.Axis.errors %}
-                            <li>{{ error }}</li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
-                {{ form1.submit() }}
-            </form>
-            <br>
+            <script>
+                url = "/TestingAxis";
+                
+                // Simulate an HTTP redirect:
+                setTimeout(function() { // timer
+                window.location.replace(url);
+                }, 1); // 10000 ms = 10 seconds
+                </script>
 
-            <div class="smalltext">
-                Use format "x", "y" or "z"
-            </div>
+
+           <bigf>Testing...</bigf><br><br>
+        <round><a href="/Start"style="color: #FFFFFF; text-decoration: none;">Cancel Test</a> </round>
+           
+
+        
+	
 
         </H3> 
     </body>

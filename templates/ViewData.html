@@ -48,12 +48,9 @@
                             <th>Test #</th>
                             <th>Serial #</th>
                             <th>Timestamp</th>
-                            <th>AX+ (V)</th>
-                            <th>AX- (V)</th>
-                            <th>FX+ (V)</th>
-                            <th>FX- (V)</th>
-                            <th>FY+ (V)</th>
-                            <th>FY- (V)</th>
+                            <th>X (µm)</th>
+                            <th>Y (µm)</th>
+                            <th>Z (µm)</th>
                             <th>Pass/Fail</th>
         
                         </tr>
@@ -73,12 +70,9 @@
 		        <td>{{ item.TestN }}</td>
                 <td>{{ item.id }}</td>
                 <td>{{ item.TimeS }}</td>
-                <td>{{ item.AXP }}</td>
-                <td>{{ item.AXN }}</td>
-                <td>{{ item.FXP }}</td>
-                <td>{{ item.FXN }}</td>
-                <td>{{ item.FYP }}</td>
-                <td>{{ item.FYN }}</td>
+                <td>{{ item.X }}</td>
+                <td>{{ item.Y }}</td>
+                <td>{{ item.Z }}</td> 
                 <td>{{ item.pf }}</td>
                 
             </tr>

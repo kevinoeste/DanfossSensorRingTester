@@ -35,12 +35,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                     <tr>
                         <th>Serial Number</th>
                         <th>Timestamp</th>
-                        <th>AX+ (V)</th>
-                        <th>AX- (V)</th>
-                        <th>FX+ (V)</th>
-                        <th>FX- (V)</th>
-                        <th>FY+ (V)</th>
-                        <th>FY- (V)</th>
+                        <th>Z (µm)</th>
+                        <th>X (µm)</th>
+                        <th>Y (µm)</th>
                         <th>Pass/Fail</th>
                     </tr>
                 </thead>
@@ -50,12 +47,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                     <tr>       
                         <td>{{ item.SN }}</td>
                         <td>{{ item.Time }}</td>
-                        <td>{{ item.AXP }}</td>
-                        <td>{{ item.AXN }}</td>
-                        <td>{{ item.FXP }}</td>
-                        <td>{{ item.FXN }}</td>
-                        <td>{{ item.FYP }}</td>
-                        <td>{{ item.FYN }}</td>
+                        <td>{{ item.Z }}</td>  
+                        <td>{{ item.X }}</td>
+                        <td>{{ item.Y }}</td>
                         <td>{{ item.pf }}</td>
                     </tr>
                     {% endfor %}
