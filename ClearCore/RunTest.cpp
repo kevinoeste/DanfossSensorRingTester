@@ -1,7 +1,6 @@
 #include "ClearCore.h"
+#include "cmath"
 
-// Specifies which motor to move.
-// Options are: ConnectorM0, ConnectorM1, ConnectorM2, or ConnectorM3.
 //Defines motors to their connectors
 #define motorA ConnectorM0
 #define motorB ConnectorM1
@@ -16,17 +15,24 @@
 #define SerialPort ConnectorUsb
 #define InputPort ConnectorUsb
 
+//For clearcore 2000 pulses per sec is equal to 1rpm output with 100:1 gearbox attached.
 // Define the velocity and acceleration limits to be used for each move
-int32_t velocityLimit = 1000; // pulses per sec
-int32_t accelerationLimit = 10000; // pulses per sec^2
+int32_t velocityLimit = 2500; // pulses per sec
+int32_t accelerationLimit = 100000; // pulses per sec^2
+
+int32_t MotorZvelocityLimit = 200; // pulses per sec
+int32_t MotorZaccelerationLimit = 100000; // pulses per sec^2
 
 void MoveDistance(int32_t distance);
 void RunTest();
 void ReadVoltage(int count);
 void MoveXaxis(int32_t distance);
-void MoveUpYaxis(int32_t distance);
-void MoveDownYaxis(int32_t distance);
+void MoveYaxis(int32_t distance);
 void MoveZaxis(int32_t distance);
+void MoveA(int32_t distance);
+void MoveB(int32_t distance);
+void RunXTest();
+void RunYTest();
 void RunZTest();
 float ReadXVoltage();
 float ReadYVoltage();
@@ -34,7 +40,7 @@ float ReadZVoltage();
 
 int main() {
     // Sets the input clocking rate.
-    MotorMgr.MotorInputClocking(MotorManager::CLOCK_RATE_NORMAL);
+    MotorMgr.MotorInputClocking(MotorManager::CLOCK_RATE_LOW);
 
     // Sets all motor connectors into step and direction mode.
     MotorMgr.MotorModeSet(MotorManager::MOTOR_ALL,
@@ -45,20 +51,22 @@ int main() {
     // that are inverted from the ClearCore's polarity.
     motorA.PolarityInvertSDEnable(true);
     motorB.PolarityInvertSDEnable(true);
+	motorZ1.PolarityInvertSDEnable(true);
+	motorZ2.PolarityInvertSDEnable(true);
     //motor.PolarityInvertSDDirection(true);
     //motor.PolarityInvertSDHlfb(true);
 
     // Sets the maximum velocity for each move
     motorA.VelMax(velocityLimit);
 	motorB.VelMax(velocityLimit);
-	motorZ1.VelMax(velocityLimit);
-	motorZ2.VelMax(velocityLimit);
+	motorZ1.VelMax(MotorZvelocityLimit);
+	motorZ2.VelMax(MotorZvelocityLimit);
 
     // Set the maximum acceleration for each move
     motorA.AccelMax(accelerationLimit);
 	motorB.AccelMax(accelerationLimit);
-	motorZ1.AccelMax(accelerationLimit);
-	motorZ2.AccelMax(accelerationLimit);
+	motorZ1.AccelMax(MotorZaccelerationLimit);
+	motorZ2.AccelMax(MotorZaccelerationLimit);
 
     // Sets up serial communication and waits up to 5 seconds for a port to open.
     // Serial communication is not required for this example to run.
@@ -88,174 +96,331 @@ int main() {
     //    continue;
     //}
 	int16_t input=0;
-	float xD,yD,zD;
+
 	while(true){
 			
 		input = InputPort.CharGet();
-		while((char)input=='1'){
+		if((char)input=='1'){
 			//Starts tests that moves motors
 			RunTest();
-			
 			//Test finishes
 			SerialPort.SendLine("0");
 			input = 0;
 		}
-		while((char)input=='z'){
-			RunZTest();
-			input = InputPort.CharGet();
+		
+		if((char)input=='x'){
+		
+			RunXTest();
+			SerialPort.SendLine("0");
+			input = 0;	
 		}
 		
-		while((char)input=='x'){
-			
-			xD = ReadXVoltage();
-			yD = ReadYVoltage();
-			zD = ReadZVoltage();
-			
-			while(xD!=2.15 && yD!=2.00){
-				
-				if(yD<2.00){
-					MoveUpYaxis(1);
-				}
-				else if(yD>2.0){
-					MoveDownYaxis(1);
-				}
-				
-				if(xD < 2.15){
-					MoveXaxis(1);
-				}
-				else if(xD > 2.18){
-					MoveXaxis(-1);
-				}
-				
-			}
-			ReadVoltage(1);
-			
-			while(xD!=1.85 && yD!=2.00){
-				
-				if(yD<2.00){
-					MoveUpYaxis(1);
-				}
-				else{
-					MoveDownYaxis(1);
-				}
-				
-				if(xD < 1.85){
-					MoveXaxis(1);
-				}
-				else{
-					MoveXaxis(-1);
-				}	
-			}
-			
-			ReadVoltage(2);
-			
-			while(xD!=2.00 && yD!=2.15){
-
-				if(xD < 2.00){
-					MoveXaxis(1);
-				}
-				else{
-					MoveXaxis(-1);
-				}
-				if(yD<2.15){
-					MoveUpYaxis(1);
-				}
-				else{
-					MoveDownYaxis(1);
-				}
-			}
-			
-			ReadVoltage(3);
-			
-			while(xD!=2.00 && yD!=1.85){
-
-				if(xD < 2.00){
-					MoveXaxis(1);
-				}
-				else{
-					MoveXaxis(-1);
-				}
-				if(yD<1.85){
-					MoveUpYaxis(1);
-				}
-				else{
-					MoveDownYaxis(1);
-				}
-			}
-			
-			ReadVoltage(4);
-			
-			input = InputPort.CharGet();
+		if((char)input=='y'){
+			RunYTest();
+			SerialPort.SendLine("0");
+			input = 0;
+		}
+		
+		if((char)input=='z'){
+			RunZTest();
+			SerialPort.SendLine("0");
+			input = 0;
 		}
     }
 }
 
-void RunZTest(){
+
+
+//Negative X moves carriage left
+
+void RunXTest(){
+	//2546
+	//160,000 is 1 rotation
+	float mo=0,xvol;
+	int step;
+	step=100;
+
+	xvol = ReadXVoltage();
+
+	ReadVoltage(0);
+	//X-axis
+	//Centers x-axis
+	mo=0;
+	while(mo!=1){
+		
+		Delay_ms(500);
+		xvol = ReadXVoltage();
+		if(xvol==150){
+			Delay_ms(1000);
+			ReadVoltage(1);
+			Delay_ms(1000);
+			mo=1;
+		}
+		else if(xvol >= 151){
+			MoveA(step);
+		}
+		else if(xvol <= 149){
+			MoveA(-step);
+		}
+	}
 	
-	MoveZaxis(200);
-	MoveZaxis(-200);
+	for(int i=0;i<20;i++){
+		ReadVoltage(1);
+		MoveXaxis(-15000);
+		ReadVoltage(1);
+		MoveXaxis(15000);
+		ReadVoltage(1);
+	}
+
+}
+//Positive value moves y-axis up
+void RunYTest(){
+	float mo=0,yvol;
+	int step;
+	step=100;
+	
+	while(mo!=1){
+		
+		Delay_ms(500);
+		yvol = ReadYVoltage();
+
+		if(yvol==150){
+			Delay_ms(1000);
+			ReadVoltage(3);
+			Delay_ms(1000);
+			mo=1;
+		}
+		else if(yvol >= 151){
+			MoveB(step);
+		}
+		else if(yvol <= 149 ){
+			MoveB(-step);
+		}
+	}
+	
+	for(int i=0;i<20;i++){
+		ReadVoltage(3);
+		MoveYaxis(-15000);
+		ReadVoltage(3);
+		MoveYaxis(15000);
+		ReadVoltage(3);
+	}
+}
+
+void RunZTest(){
+	float mo=0,zvol;
+	int step;
+	step=100;
+	
+	while(mo!=1){
+				
+		Delay_ms(500);
+		zvol = ReadZVoltage();
+
+		if(zvol==150){
+			Delay_ms(1000);
+			ReadVoltage(5);
+			Delay_ms(1000);
+			mo=1;
+		}
+		else if(zvol >= 151){
+			MoveZaxis(step);
+		}
+		else if(zvol <= 149 ){
+			MoveZaxis(-step);
+		}
+	}
+	
+	for(int i=0;i<20;i++){
+		ReadVoltage(5);
+		MoveZaxis(-40);
+		ReadVoltage(5);
+		MoveZaxis(40);
+		ReadVoltage(5);
+	}
 }
 
 void RunTest(){
-	//Read voltage while centered
-	ReadVoltage(0);
-			
-	//X-axis moves to one extreme
-	MoveXaxis(18000);
+			float mo=0,yvol,xvol,zvol;
+			int step;
+			step=100;
+			yvol = ReadYVoltage();
+			xvol = ReadXVoltage();
+			zvol = ReadZVoltage();
+			ReadVoltage(0);
+//X-axis			
+			//Centers x-axis	
+			mo=0;
+			while(mo!=1){
+				
+				Delay_ms(500);
+				xvol = ReadXVoltage();
+				if(xvol==150){
+					Delay_ms(1000);
+					ReadVoltage(1);
+					Delay_ms(1000);
+					mo=1;
+				}
+				else if(xvol >= 151){
+					MoveA(step);
+				}
+				else if(xvol <= 149){
+					MoveA(-step);
+				}
+			}
 
-	//Reads voltage of sensor
-	Delay_ms(1000);
-	ReadVoltage(1);
-	Delay_ms(1000);
-			
-	//X-axis moves to other extreme
-	MoveXaxis(-2000);
+			//Moves x-axis 150micron
+			mo=0;
+			while(mo!=1){
+				
+				Delay_ms(500);
+				xvol = ReadXVoltage();
+				if(xvol==135){
+					Delay_ms(1000);
+					ReadVoltage(2);
+					Delay_ms(1000);
+					mo=1;
+				}
+				else if(xvol >= 136){
+					MoveA(step);
+				}
+				else if(xvol <= 134){
+					MoveA(-step);
+				}
+			}
 
-	//Reads voltage of sensor
-	Delay_ms(1000);
-	ReadVoltage(2);
-	Delay_ms(1000);
-			
-	//Centers x-axis
-	MoveXaxis(100);
-			
-	//Y-axis moves to one extreme
-	MoveUpYaxis(10000);
+			//Moves x-axis back to center
+			mo=0;
+			while(mo!=1){
+				
+				Delay_ms(500);
+				xvol = ReadXVoltage();
+				
+				if(xvol==150){
+					mo=1;
+				}
+				else if(xvol >= 151){
+					MoveA(step);
+				}
+				else if(xvol <= 149 ){
+					MoveA(-step);
+				}
+			}
+//Y-axis
+			while(mo!=1){
+				
+				Delay_ms(500);
+				yvol = ReadYVoltage();
 
-	//Reads voltage of sensor
-	Delay_ms(1000);
-	ReadVoltage(3);
-	Delay_ms(1000);
+				if(yvol==150){
+					Delay_ms(1000);
+					ReadVoltage(3);
+					Delay_ms(1000);
+					mo=1;
+				}
+				else if(yvol >= 151){
+					MoveB(step);
+				}
+				else if(yvol <= 149 ){
+					MoveB(-step);
+				}
+			}
 			
-	//Y-axis moves to other extreme
-	MoveDownYaxis(200);
 
-	//Reads voltage of sensor
-	Delay_ms(1000);
-	ReadVoltage(4);
-	Delay_ms(1000);
+			mo=0;
+			while(mo!=1){
+				
+				Delay_ms(500);
+				yvol = ReadYVoltage();
+				
+				if(yvol==135){
+					Delay_ms(1000);
+					ReadVoltage(4);
+					Delay_ms(1000);
+					mo=1;
+				}
+				else if(yvol >= 136){
+					MoveB(step);
+				}
+				else if(yvol <= 134){
+					MoveB(-step);
+				}
+			}
 			
-	//Centers y-axis
-	MoveUpYaxis(100);
-			
-	//Z-axis moves to one extreme
-	MoveZaxis(150);
 
-	//Reads voltage of sensor
-	Delay_ms(1000);
-	ReadVoltage(5);
-	Delay_ms(1000);
-			
-	//Z-axis moves to other extreme
-	MoveZaxis(-300);
+			mo=0;
+			while(mo!=1){
+				
+				Delay_ms(500);
+				yvol = ReadYVoltage();
+				
+				if(yvol==150){
+					mo=1;
+				}
+				else if(yvol >= 151){
+					MoveB(step);
+				}
+				else if(yvol <= 149){
+					MoveB(-step);
+				}
+			}
+//Z-axis
+			Delay_ms(1000);
+			mo=0;
+			while(mo!=1){
+				
+				Delay_ms(500);
+				zvol = ReadZVoltage();
 
-	//Reads voltage of sensor
-	Delay_ms(1000);
-	ReadVoltage(6);
-	Delay_ms(1000);
+				if(zvol==150){
+					Delay_ms(1000);
+					ReadVoltage(5);
+					Delay_ms(1000);
+					mo=1;
+				}
+				else if(zvol >= 151){
+					MoveZaxis(step);
+				}
+				else if(zvol <= 149 ){
+					MoveZaxis(-step);
+				}
+			}
 			
-	//Centers z-axis
-	MoveZaxis(150);	
+			mo=0;
+			while(mo!=1){
+				Delay_ms(500);
+				zvol = ReadZVoltage();
+				
+				if(zvol==135){
+					Delay_ms(1000);
+					ReadVoltage(6);
+					Delay_ms(1000);
+					mo=1;
+				}
+				else if(zvol >= 136){
+					MoveZaxis(step);
+				}
+				else if(zvol <= 134){
+					MoveZaxis(-step);
+				}
+			}
+			
+			mo=0;
+			while(mo!=1){
+				
+				Delay_ms(500);
+				zvol = ReadZVoltage();
+				if(zvol==150){
+					mo=1;
+				}
+				else if(zvol >= 151){
+					MoveZaxis(step);
+				}
+				else if(zvol <= 149){
+					MoveZaxis(-step);
+				}
+			}
+			SerialPort.SendLine("0");
 }
 
 float ReadXVoltage(){
@@ -266,10 +431,12 @@ float ReadXVoltage(){
 		double xVoltage;
 		xVoltage = 10.0 * xResult / ((1 << adcResolution) - 1);
 		
-		double Xmm,Ymm,Zmm;
+		double Xmm;
+		int X;
 		Xmm = xVoltage * 0.35;
+		X=round(Xmm*100);
 		
-		return Xmm;
+		return X;
 }
 
 float ReadYVoltage(){
@@ -277,15 +444,15 @@ float ReadYVoltage(){
 		yResult = ConnectorA11.State();
 		
 		// Convert the reading to a voltage.
-		double xVoltage,yVoltage,zVoltage;
-
+		double yVoltage;
 		yVoltage = 10.0 * yResult / ((1 << adcResolution) - 1);
 
 		double Ymm;
+		int Y;
 		Ymm = yVoltage * 0.35;
+		Y = round(Ymm*100);
 		
-		return Ymm;
-
+		return Y;
 }
 
 float ReadZVoltage(){
@@ -298,8 +465,10 @@ float ReadZVoltage(){
 		
 		double Zmm;
 		Zmm = zVoltage * 0.35;
+		int Z;
+		Z = round(Zmm*100);
 		
-		return Zmm;
+		return Z;
 }
 
 void ReadVoltage(int count){
@@ -307,6 +476,7 @@ void ReadVoltage(int count){
 	xResult = ConnectorA12.State();
 	yResult = ConnectorA11.State();
 	zResult = ConnectorA10.State();
+	
 				
 	// Convert the reading to a voltage.
 	double xVoltage,yVoltage,zVoltage;
@@ -330,6 +500,23 @@ void ReadVoltage(int count){
 
 }
 
+void MoveA(int32_t distance){
+	
+	motorA.Move(distance);
+	while (!motorA.StepsComplete()) {
+		continue;
+	}
+}
+
+void MoveB(int32_t distance){
+	
+
+	motorB.Move(distance);
+	while (!motorB.StepsComplete()) {
+		continue;
+	}
+}
+
 //Moves sensor ring on X-axis(positive distance moves left, negative distance moves right)
 void MoveXaxis(int32_t distance){
 	
@@ -341,24 +528,15 @@ void MoveXaxis(int32_t distance){
 }
 
 //Moves sensor ring up on Y-axis
-void MoveUpYaxis(int32_t distance){
+void MoveYaxis(int32_t distance){
 	
-	motorA.Move(-distance);
-	motorB.Move(distance);
-	while (!motorA.StepsComplete() && !motorB.StepsComplete()) {
-		continue;
-	}
-}
-
-//Moves sensor ring down on Y-axis
-void MoveDownYaxis(int32_t distance){
-
 	motorA.Move(distance);
 	motorB.Move(-distance);
 	while (!motorA.StepsComplete() && !motorB.StepsComplete()) {
 		continue;
 	}
 }
+
 
 //Moves shaft up or down(use negative value to change direction)
 void MoveZaxis(int32_t distance){
@@ -369,32 +547,3 @@ void MoveZaxis(int32_t distance){
 		continue;
 	}
 }
-
-/*------------------------------------------------------------------------------
- * MoveDistance
- *
- *    Command "distance" number of step pulses away from the current position
- *    Prints the move status to the USB serial port
- *    Returns when step pulses have completed
- *
- * Parameters:
- *    int distance  - The distance, in step pulses, to move
- *
- * Returns: None
- */
-void MoveDistance(int32_t distance) {
-    SerialPort.Send("Moving distance: ");
-    SerialPort.SendLine(distance);
-
-    // Command the move of incremental distance
-    motorA.Move(distance);
-
-    // Waits for all step pulses to output
-    SerialPort.SendLine("Moving... Waiting for the step output to finish...");
-    while (!motorA.StepsComplete()) {
-        continue;
-    }
-
-    SerialPort.SendLine("Steps Complete");
-}
-//------------------------------------------------------------------------------
