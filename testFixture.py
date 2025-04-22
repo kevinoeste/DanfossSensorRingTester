@@ -29,6 +29,10 @@ data_lock = threading.Lock()
 #Uncomment command below to open window when code is ran. Also must change code at bottom of file
 #window = webview.create_window('Sensor Ring Test Program',app)
 
+
+#Uncomment command below to open window when code is ran. Also must change code at bottom of file
+#window = webview.create_window('Sensor Ring Test Program',app)
+
 #Configuration used to create and find database file.
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'TestData.db')
@@ -45,12 +49,9 @@ class SenData(db.Model):
     TestN = db.Column(db.Integer, primary_key=True) #Auto incremented later in program but is unique for each sensor
     id = db.Column(db.String(10), nullable=False)   #This is the serial number
     TimeS = db.Column(db.Integer)
-    FXP = db.Column(db.Float)
-    FXN = db.Column(db.Float)
-    FYP = db.Column(db.Float)
-    FYN = db.Column(db.Float)
-    AXP = db.Column(db.Float)
-    AXN = db.Column(db.Float)
+    X = db.Column(db.Float)
+    Y = db.Column(db.Float)
+    Z = db.Column(db.Float)
     pf = db.Column(db.String(10), nullable=False)
 
     def __repr__(self):
@@ -102,7 +103,7 @@ class RegisterForm(FlaskForm):
 #Used to create form for serial number entry.
 class MyForm(FlaskForm):
     SerialNum = StringField('SN:', validators=[DataRequired()])
-    submit = SubmitField('Submit')
+    submit = SubmitField('Start Test')
 
 #Used to create form to search database by serial number.
 class MySearch(FlaskForm):
@@ -129,7 +130,7 @@ class ManualEntry(FlaskForm):
 #Used to edit a database value.
 class ManualEntryEdit(FlaskForm):
     TestNum = StringField('Test Number:', validators=[DataRequired()])
-    SerialNum = StringField('SN:' , validators=[Optional()])
+    SerialNum = StringField('SN:')
     FXP = StringField('FXP:', validators=[Optional()])
     FXN = StringField('FXN:', validators=[Optional()])
     FYP = StringField('FYP:', validators=[Optional()])
@@ -152,29 +153,16 @@ with app.app_context():
         db.session.commit()
 
 #ValueTest checks each sensor value reading and checks if they fall between the spec range
-def ValueTest(XA,YA,ZA):
-    #Converts float values to integers to allow comparison.
-    TFXP = int(XA[1]*1000)
-    TFXN = int(XA[2]*1000)
-    TFYP = int(YA[3]*1000)
-    TFYN = int(YA[4]*1000)
-    TAXP = int(ZA[5]*1000)
-    TAXN = int(ZA[6]*1000)
+def ValueTest(X,Y,Z):
 
     #Checks each sensor value to make sure its within range.
     #If its in the range 1 will be added to TestSum.
     TestSum=0
-    if TFXP > 1000 and TFXP < 1150:
+    if X > 275 and X < 325:
         TestSum +=1
-    if TFXN > 3000 and TFXN < 3150:
+    if Y > 275 and Y < 325:
         TestSum +=1
-    if TFYP > 1000 and TFYP < 1150:
-        TestSum +=1
-    if TFYN > 3000 and TFYN < 3150:
-        TestSum +=1
-    if TAXP > 1000 and TAXP < 1150:
-        TestSum +=1
-    if TAXN > 3000 and TAXN < 3150:
+    if Z > 275 and Z < 325:
         TestSum +=1
 
     return TestSum
@@ -419,15 +407,20 @@ def AddEdit():
             TestNum = 1
         else:
             TestNum= int(TestNum1.TestN) +1
-    
+
+        X = round(abs((FXP-FXN) * 1000))
+        Y = round(abs((FYP-FYN) * 1000))
+        Z = round(abs((AXP-AXN) * 1000))
+
         #Decides if test passed or failed based on using the ValueTest function. TV represents how many sensors passed.
-        TV=ValueTest(XA, YA, ZA)
-        if TV==6:
+        TV=ValueTest(X,Y,Z)
+
+        if TV==3:
             #data sends data to be displayed on the Passed.html page
-            data = [{'SN': SerialNum, 'Time': Time, 'FXP': FXP, 'FXN': FXN, 'FYP': FYP, 'FYN': FYN, 'AXP': AXP, 'AXN': AXN,'pf':"Pass"}]
+            data = [{'SN': SerialNum, 'Time': Time, 'X': X, 'Y': Y, 'Z': Z, 'pf':"Pass"}]
 
             #datas holds values that are then sent and stored in the database
-            datas = SenData(TestN=TestNum, id=SerialNum, TimeS=Time, FXP=FXP, FXN=FXN,FYP=FYP,FYN=FYN,AXP=AXP,AXN=AXN,pf="Pass")
+            datas = SenData(TestN=TestNum, id=SerialNum, TimeS=Time, X=X, Y=Y, Z=Z, pf="Pass")
             db.session.add(datas)
             db.session.commit()
 
@@ -444,10 +437,10 @@ def AddEdit():
     
         else:
             #data sends data to be displayed on the Fail.html page.
-            data = [{'SN': SerialNum, 'Time': Time, 'FXP': FXP, 'FXN': FXN, 'FYP': FYP, 'FYN': FYN, 'AXP': AXP, 'AXN': AXN,'pf':"Fail"}]
+            data = [{'SN': SerialNum, 'Time': Time, 'X': X, 'Y': Y, 'Z': Z, 'pf':"Fail"}]
 
             #datas holds values that are then sent and stored in the database.
-            datas = SenData(TestN=TestNum, id=SerialNum, TimeS=Time, FXP=FXP, FXN=FXN,FYP=FYP,FYN=FYN,AXP=AXP,AXN=AXN,pf="Fail")
+            datas = SenData(TestN=TestNum, id=SerialNum, TimeS=Time, X=X, Y=Y, Z=Z, pf="Fail")
             db.session.add(datas)
             db.session.commit()
 
@@ -562,6 +555,10 @@ def Testing():
     AXP = ZA[5]
     AXN = ZA[6]
 
+    X = round(abs((FXP-FXN) * 1000))
+    Y = round(abs((FYP-FYN) * 1000))
+    Z = round(abs((AXP-AXN) * 1000))
+
     #Stores current date and time and formats it.
     FTime = datetime.now()
     Time = FTime.strftime("%m-%d-%Y %H:%M:%S")
@@ -578,13 +575,13 @@ def Testing():
         TestNum= int(TestNum1.TestN) +1
     
     #Decides if test passed or failed based on using the ValueTest function. TV represents how many sensors passed.
-    TV=ValueTest(XA,YA,ZA)
-    if TV==6:
+    TV=ValueTest(X,Y,Z)
+    if TV==3:
         #data sends data to be displayed on the Passed.html page
-        data = [{'SN': SN, 'Time': Time, 'FXP': FXP, 'FXN': FXN, 'FYP': FYP, 'FYN': FYN, 'AXP': AXP, 'AXN': AXN,'pf':"Pass"}]
+        data = [{'SN': SN, 'Time': Time, 'X': X, 'Y': Y, 'Z': Z,'pf':"Pass"}]
 
         #datas holds values that are then sent and stored in the database
-        datas = SenData(TestN=TestNum, id=SN, TimeS=Time, FXP=FXP, FXN=FXN,FYP=FYP,FYN=FYN,AXP=AXP,AXN=AXN,pf="Pass")
+        datas = SenData(TestN=TestNum, id=SN, TimeS=Time, X=X, Y=Y, Z=Z, pf="Pass")
         db.session.add(datas)
         db.session.commit()
 
@@ -600,10 +597,10 @@ def Testing():
         return render_template('Passed.html',data=data)
     else:
         #data sends data to be displayed on the Fail.html page.
-        data = [{'SN': SN, 'Time': Time, 'FXP': FXP, 'FXN': FXN, 'FYP': FYP, 'FYN': FYN, 'AXP': AXP, 'AXN': AXN,'pf':"Fail"}]
+        data = [{'SN': SN, 'Time': Time, 'X': X, 'Y': Y, 'Z': Z, 'pf':"Fail"}]
 
         #datas holds values that are then sent and stored in the database.
-        datas = SenData(TestN=TestNum, id=SN, TimeS=Time, FXP=FXP, FXN=FXN,FYP=FYP,FYN=FYN,AXP=AXP,AXN=AXN,pf="Fail")
+        datas = SenData(TestN=TestNum, id=SN, TimeS=Time, X=X, Y=Y, Z=Z, pf="Fail")
         db.session.add(datas)
         db.session.commit()
 
