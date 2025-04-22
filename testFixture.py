@@ -286,9 +286,9 @@ def AddEdit():
         else:
             TestNum= int(TestNum1.TestN) +1
 
-        X = round(abs(FXP-FXN),1) * 1000
-        Y = round(abs(FYP-FYN),1) * 1000
-        Z = round(abs(AXP-AXN),1) * 1000
+        X = round(abs((FXP-FXN) * 1000))
+        Y = round(abs((FYP-FYN) * 1000))
+        Z = round(abs((AXP-AXN) * 1000))
     
         #Decides if test passed or failed based on using the ValueTest function. TV represents how many sensors passed.
         TV=ValueTest(X,Y,Z)
