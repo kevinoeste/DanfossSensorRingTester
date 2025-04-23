@@ -1,6 +1,8 @@
 #include "ClearCore.h"
 #include "cmath"
 
+// Specifies which motor to move.
+// Options are: ConnectorM0, ConnectorM1, ConnectorM2, or ConnectorM3.
 //Defines motors to their connectors
 #define motorA ConnectorM0
 #define motorB ConnectorM1

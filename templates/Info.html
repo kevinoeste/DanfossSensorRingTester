@@ -9,9 +9,18 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+        <style>
+            .paragraph{justify-content: left; font-size:30px;}
+        </style>
     </head>
     <body>
-
+        <div class="logout-bar">
+        {% if current_user.is_authenticated %}
+            <a href="/logout">Logout ({{ current_user.username }})</a>
+        {% else %}
+            <a href="/login">Login</a>
+        {% endif %}
+        </div>
         <h1>Sensor Ring Test Program</h1>
         <h2>        
             <div class="topnav">
@@ -22,9 +31,24 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
             <a class="active" href="/Info">Info</a>
           </div> </h2>
 
+        <H3><txtbody>Created for:</txtbody><br><br>
+             <div class="paragraph">Danfoss Turbocor Compressors</div></H3>
+        <H3><txtbody>System Administrator(s): </txtbody><br><br>
+            <div class="paragraph">Danfoss IT</div></H3>
         <H3>
-            
-
-        </H3> 
+        <txtbody>Preparing fixture for test:</txtbody><br><br>
+        <div class="paragraph">
+            Before starting the test, a technician must check that the hardware is plugged in, the tracks are free
+            from debris,<br>and has no obstructions in the path. Then a sensor ring can be placed in the mount for testing.
+        </div>
+        </H3>
+        <H3>
+            <txtbody>Initializing test on application:</txtbody><br><br>
+        <div class="paragraph">
+            To perform a test click on the start test tab. Enter the serial number of the sensor
+            ring and then click start test.<br>The test will begin and once complete the results will be displayed
+            along with if it passed or failed.
+        </div>
+        </H3>
     </body>
 </html>

@@ -11,7 +11,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
         <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     </head>
     <body>
-
+        <div class="logout-bar">
+        {% if current_user.is_authenticated %}
+            <a href="/logout">Logout ({{ current_user.username }})</a>
+        {% else %}
+            <a href="/login">Login</a>
+        {% endif %}
+        </div>
         <h1>Sensor Ring Test Program</h1>
         <h2>        
             <div class="topnav">
@@ -46,7 +52,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                 {% endif %}
                 {{ form.submit() }}
             </form>
-            
+
 
         </H3> 
     </body>
