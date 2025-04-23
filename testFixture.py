@@ -14,13 +14,6 @@ from wtforms import StringField, SubmitField
 from wtforms.fields.simple import PasswordField
 from wtforms.validators import DataRequired, Optional, Length, EqualTo
 
-#To do:
-#1: Format start test page better
-#2: Fix edit database-works now but needs error correcting
-#3: Finish adding info to home screen
-#4: Add error routing if serial port cant be reached
-#5: Add info to Info page(info on clearcore, how test is ran, pass fail parameters, etc)
-#6: Check html navigation bar/headers to make sure all are the same
 
 
 app = Flask(__name__)
@@ -29,9 +22,6 @@ data_lock = threading.Lock()
 #Uncomment command below to open window when code is ran. Also must change code at bottom of file
 #window = webview.create_window('Sensor Ring Test Program',app)
 
-
-#Uncomment command below to open window when code is ran. Also must change code at bottom of file
-#window = webview.create_window('Sensor Ring Test Program',app)
 
 #Configuration used to create and find database file.
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -117,7 +107,7 @@ class UserSearch(FlaskForm):
 
 #Used to create form for manual data entry.
 class ManualEntry(FlaskForm):
-    TestNum = StringField('Test Number:', validators=[DataRequired()])
+    #TestNum = StringField('Test Number:', validators=[DataRequired()])
     SerialNum = StringField('SN:', validators=[DataRequired()])
     FXP = StringField('FXP:', validators=[DataRequired()])
     FXN = StringField('FXN:', validators=[DataRequired()])
@@ -153,7 +143,7 @@ def __repr__(self):
 
 #used for the x, y and z axis motor tests
 class TestForm(FlaskForm):
-    Axis = StringField('Enter x, y or z:', validators =[DataRequired()])
+    Axis = StringField('Enter a, x, y or z:', validators =[DataRequired()])
     submit = SubmitField('Submit')
 
 with app.app_context():
@@ -170,11 +160,11 @@ def ValueTest(X,Y,Z):
     #Checks each sensor value to make sure its within range.
     #If its in the range 1 will be added to TestSum.
     TestSum=0
-    if X > 275 and X < 325:
+    if X == 150:
         TestSum +=1
-    if Y > 275 and Y < 325:
+    if Y == 150:
         TestSum +=1
-    if Z > 275 and Z < 325:
+    if Z == 150:
         TestSum +=1
 
     return TestSum
@@ -358,25 +348,32 @@ def EditVal():
             FYN = float(form.FYN.data) if form.FYN.data else float(row_to_update.FYN)
             AXP = float(form.AXP.data) if form.AXP.data else float(row_to_update.AXP)
             AXN = float(form.AXN.data) if form.AXN.data else float(row_to_update.AXN)
+
+            X = round(abs((FXP-FXN) * 1000))
+            Y = round(abs((FYP-FYN) * 1000))
+            Z = round(abs((AXP-AXN) * 1000))
+
             # Update the row
             row_to_update.id = SerialNum
-            row_to_update.FXP = FXP
-            row_to_update.FXN = FXN
-            row_to_update.FYP = FYP
-            row_to_update.FYN = FYN
-            row_to_update.AXP = AXP
-            row_to_update.AXN = AXN
+            row_to_update.X = X
+            row_to_update.Y = Y
+            row_to_update.Z = Z
+
 
             # Update timestamp
             FTime = datetime.now()
             Time = FTime.strftime("%m-%d-%Y %H:%M:%S")
             row_to_update.TimeS = Time
 
+            TV = ValueTest(X,Y,Z)
+            if TV == 3:
+                row_to_update.pf = "Pass"
+            else:
+                row_to_update.pf = "Fail"
 
             db.session.commit()
             # Prepare data for display
-            datas = [{'TestN': row_to_update.TestN,'SN': SerialNum, 'Time': Time, 'FXP': FXP, 'FXN': FXN, 'FYP': FYP, 'FYN': FYN, 'AXP': AXP,
-                      'AXN': AXN, 'pf': row_to_update.pf}]
+            datas = [{'TestN': row_to_update.TestN,'SN': SerialNum, 'Time': Time, 'X': X, 'Y': Y, 'Z': Z,  'pf': row_to_update.pf}]
             return render_template('EditedData.html', data=datas)
         else:
             return render_template('EditDatabase.html', form=form,
@@ -478,7 +475,7 @@ def AddEdit():
 
             return render_template('Fail.html',data=data)
         
-    return render_template('EditDatabase.html', form=form)
+    return render_template('AddDatabase.html', form=form)
 
 
 @app.route('/TestingAxis', methods = ['POST', 'GET'])
