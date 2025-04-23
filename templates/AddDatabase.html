@@ -29,11 +29,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
           </div> </h2>
 
         <H3>
-            
-            <div class="hdr"> Edit Test Values:</div><br>
+            <div class="hdr"> Add Entry to Database:</div><br>
             <form method="POST">
                 {{ form.hidden_tag() }}
-                {{ form.TestNum.label }} {{ form.TestNum }} <br>
                 {{ form.SerialNum.label }} {{ form.SerialNum() }}<br>
                 {{ form.FXP.label }} {{ form.FXP() }}<br>
                 {{ form.FXN.label }} {{ form.FXN() }}<br>

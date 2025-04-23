@@ -25,3 +25,42 @@
             <a href="/Info">Info</a>
         </div>
         </h2>
+
+        <H3>
+            <center>
+            <br> <bigf>Edited Data:</bigf>  <br> <br>
+
+            <div class="d"> 
+            <table>
+                <thead>
+                    <tr>
+                        <th>Serial Number</th>
+                        <th>Timestamp</th>
+                        <th>Z (µm)</th>
+                        <th>X (µm)</th>
+                        <th>Y (µm)</th>
+                        <th>Pass/Fail</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for item in data %}
+                    <tr>
+                        <td>{{ item.SN }}</td>
+                        <td>{{ item.Time }}</td>
+                        <td>{{ item.Z }}</td>
+                        <td>{{ item.X }}</td>
+                        <td>{{ item.Y }}</td>
+                        <td>{{ item.pf }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody> 
+            
+                    
+            </table>    
+            </div>
+        </center>
+        <br>
+        <br>
+        </H3> 
+    </body>

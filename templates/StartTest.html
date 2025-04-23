@@ -30,7 +30,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
 
         <H3>
             
-            <div class="hdr"> Enter in Serial Number Below</div> <br>
+            <div class="hdr"> Enter a Serial Number Below to Begin Test</div> <br>
             <form method="POST">
                 {{ form.hidden_tag() }}
                 {{ form.SerialNum.label }} {{ form.SerialNum() }}
@@ -63,8 +63,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
             <div class="smalltext">
                 Use format "COM#"
             </div>
-            <br>
-            <div class="hdr"> Enter X, Y or Z to test motors</div> <br>
+            <br><br>
+            <div class="hdr"> Run a test on all or a specific axis</div> <br>
             <form method="POST">
                 {{ form1.hidden_tag() }}
                 {{ form1.Axis.label }} {{ form1.Axis() }}
